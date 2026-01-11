@@ -2,316 +2,224 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>МалоРиса — Змейка</title>
+<title>Snake | Малориса</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Yandex Games SDK -->
+<script src="https://sdk.games.s3.yandex.net/sdk.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
-:root{
-  --bg:#111;
-  --panel:#1c1c1c;
-  --canvas:#000;
-  --text:#fff;
-  --accent:#ff6b9a;
-}
-body.light{
-  --bg:#f3f3f3;
-  --panel:#fff;
-  --canvas:#e6e6e6;
-  --text:#111;
-}
-
-*{margin:0;padding:0;box-sizing:border-box}
 body{
-  background:var(--bg);
-  color:var(--text);
-  font-family:system-ui,sans-serif;
+  margin:0;
+  background:#0e0e11;
+  font-family:'Press Start 2P', monospace;
+  color:#fff;
   display:flex;
-  flex-direction:column;
+  justify-content:center;
   align-items:center;
   height:100vh;
-  touch-action:none;
 }
 
-header{
-  width:100%;
-  padding:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:var(--panel);
+#gameWrap{
+  width:360px;
+  text-align:center;
 }
-
-.title{
-  font-family:'Press Start 2P', monospace;
-  font-size:14px;
-  color:var(--accent);
-}
-
-.btn-ui{
-  font-size:14px;
-  padding:6px 10px;
-  border-radius:10px;
-  background:#2a2a2a;
-  color:#fff;
-}
-body.light .btn-ui{background:#ddd;color:#000}
 
 canvas{
-  background:var(--canvas);
-  border-radius:12px;
-  margin:10px 0;
+  background:#14141a;
+  border-radius:16px;
+  display:none;
 }
 
-.controls{
-  display:grid;
-  grid-template-columns:repeat(3,70px);
-  grid-template-rows:repeat(2,70px);
-  gap:10px;
-}
-.btn{
-  background:#222;
+button{
+  font-family:'Press Start 2P';
+  font-size:11px;
+  padding:14px;
+  width:100%;
+  border:none;
   border-radius:14px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-size:28px;
-}
-body.light .btn{background:#ddd;color:#000}
-.btn:active{background:var(--accent)}
-.up{grid-column:2}
-.left{grid-column:1}
-.down{grid-column:2}
-.right{grid-column:3}
-
-.overlay{
-  position:fixed;
-  inset:0;
-  background:var(--bg);
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  z-index:10;
-}
-
-.logo{
-  font-family:'Press Start 2P', monospace;
-  font-size:24px;
-  color:var(--accent);
-  animation:float 2.5s ease-in-out infinite;
-  margin-bottom:30px;
-}
-
-@keyframes float{
-  0%{transform:translateY(0)}
-  50%{transform:translateY(-12px)}
-  100%{transform:translateY(0)}
-}
-
-.pixel-btn{
-  font-family:'Press Start 2P', monospace;
-  font-size:14px;
-  padding:16px 28px;
-  border-radius:14px;
-  background:var(--accent);
+  background:#ff7aa2;
   color:#000;
-  margin-top:16px;
+  cursor:pointer;
+  margin-top:12px;
 }
 
-/* уменьшенная кнопка */
-.pixel-btn.small{
+button:active{transform:scale(.96)}
+
+#startScreen{
+  background:#14141a;
+  padding:20px;
+  border-radius:18px;
+}
+
+.skin-btn{
+  background:#222;
+  padding:10px;
+  margin-top:8px;
+  border-radius:12px;
+  cursor:pointer;
+  transition:.25s;
+}
+
+.skin-btn.active{
+  background:#ff7aa2;
+  color:#000;
+  transform:scale(1.1);
+  box-shadow:0 0 16px #ff7aa2;
+}
+
+#score{
+  margin:12px 0;
+}
+
+#records{
   font-size:10px;
-  padding:10px 18px;
-  opacity:.9;
+  margin-top:16px;
+  text-align:left;
 }
-
-.gameover{
-  font-family:'Press Start 2P', monospace;
-  font-size:18px;
-  margin-bottom:16px;
-}
-.small{font-size:12px}
 </style>
 </head>
 
 <body>
+<div id="gameWrap">
 
-<!-- Главное меню -->
-<div class="overlay" id="startScreen">
-  <div class="logo">МАЛОРИСА</div>
-  <div class="pixel-btn" id="playBtn">ИГРАТЬ</div>
-  <div class="pixel-btn small" id="inviteBtn">ПРИГЛАСИТЬ ДРУГА</div>
-</div>
+<div id="startScreen">
+  <h3>ЗМЕЙКА</h3>
 
-<!-- Game Over -->
-<div class="overlay" id="gameOverScreen" style="display:none">
-  <div class="gameover">GAME OVER</div>
-  <div class="small">
-    Счет: <span id="finalScore">0</span> |
-    Рекорд: <span id="finalRecord">0</span>
+  <div class="skin-btn active" data-skin="malorisa">МАЛОРИСА</div>
+  <div class="skin-btn" data-skin="classic">КЛАССИКА</div>
+  <div class="skin-btn" data-skin="neon">НЕОН</div>
+
+  <button onclick="startGame()">НАЧАТЬ ИГРУ</button>
+
+  <div id="records">
+    <b>Рекорды:</b><br>
+    1. Глеб — 42<br>
+    2. Аня — 35<br>
+    3. Макс — 28
   </div>
-  <div class="pixel-btn" id="restartBtn">СНОВА</div>
-  <div class="pixel-btn small" id="exitBtn">В МЕНЮ</div>
 </div>
 
-<header>
-  <span id="score">0</span>
-  <span class="title">МАЛОРИСА</span>
-  <span style="display:flex;gap:6px">
-    <span id="record">0</span>
-    <span class="btn-ui" id="pauseBtn">⏸</span>
-    <span class="btn-ui" id="menuBtn">⏮</span>
-    <span class="btn-ui" id="themeBtn">☀︎ / 🌙</span>
-  </span>
-</header>
+<div id="score">Очки: 0</div>
+<canvas id="game" width="360" height="360"></canvas>
 
-<canvas id="game" width="320" height="320"></canvas>
-
-<div class="controls">
-  <div></div><div class="btn up">▲</div><div></div>
-  <div class="btn left">◀</div><div class="btn down">▼</div><div class="btn right">▶</div>
 </div>
 
 <script>
-const canvas=document.getElementById("game")
-const ctx=canvas.getContext("2d")
-const box=20, cols=16, rows=16
+const canvas = document.getElementById("game")
+const ctx = canvas.getContext("2d")
+const box = 24
+let game
 
-const colors=["#ff6b9a","#6bffb0","#6bd4ff","#ffe66b","#c77dff"]
-
-let snake,dir,food,score,paused=true
-let record=localStorage.getItem("malorisa_record")||0
-
-document.getElementById("record").innerText=record
-document.getElementById("finalRecord").innerText=record
-
-const foods=["🍣","🍟","🍔","🍕"]
-const audioCtx=new (window.AudioContext||window.webkitAudioContext)()
-
-function randColor(){
-  return colors[Math.floor(Math.random()*colors.length)]
+const skins = {
+  malorisa:{ color:"#ff7aa2" },
+  classic:{ color:"#7CFF7C" },
+  neon:{ color:"#00ffe7" }
 }
 
-function beep(f=600,t=0.1){
-  const o=audioCtx.createOscillator(),g=audioCtx.createGain()
-  o.type="square";o.frequency.value=f
-  g.gain.value=0.08;o.connect(g).connect(audioCtx.destination)
-  o.start();o.stop(audioCtx.currentTime+t)
+let currentSkin = "malorisa"
+
+const headStyles = {
+  cute:[
+    [0,1,1,1,0],
+    [1,0,1,0,1],
+    [1,1,1,1,1],
+    [1,0,1,0,1],
+    [0,1,1,1,0],
+  ]
 }
 
-function start(){
-  snake=[{x:8,y:8,color:randColor()}]
-  dir={x:1,y:0}
+let snake, food, dir, score
+
+document.querySelectorAll(".skin-btn").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll(".skin-btn").forEach(b=>b.classList.remove("active"))
+    btn.classList.add("active")
+    currentSkin = btn.dataset.skin
+  }
+})
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowUp"&&dir!=="DOWN")dir="UP"
+  if(e.key==="ArrowDown"&&dir!=="UP")dir="DOWN"
+  if(e.key==="ArrowLeft"&&dir!=="RIGHT")dir="LEFT"
+  if(e.key==="ArrowRight"&&dir!=="LEFT")dir="RIGHT"
+})
+
+function startGame(){
+  document.getElementById("startScreen").style.display="none"
+  canvas.style.display="block"
+  document.getElementById("score").style.display="block"
+
+  snake=[{x:7,y:7}]
+  dir="RIGHT"
   score=0
-  paused=false
-  document.getElementById("score").innerText=0
   spawnFood()
+
+  clearInterval(game)
+  game=setInterval(draw,130)
 }
 
 function spawnFood(){
   food={
-    x:Math.floor(Math.random()*cols),
-    y:Math.floor(Math.random()*rows),
-    icon:foods[Math.floor(Math.random()*foods.length)]
+    x:Math.floor(Math.random()*14),
+    y:Math.floor(Math.random()*14)
   }
 }
 
-function gameOver(){
-  paused=true
-  if(score>record){
-    record=score
-    localStorage.setItem("malorisa_record",record)
-  }
-  document.getElementById("finalScore").innerText=score
-  document.getElementById("finalRecord").innerText=record
-  document.getElementById("record").innerText=record
-  document.getElementById("gameOverScreen").style.display="flex"
+function drawHead(x,y,color){
+  const p=headStyles.cute
+  const px=box/5
+  p.forEach((r,ry)=>{
+    r.forEach((c,cx)=>{
+      if(c){
+        ctx.fillStyle=color
+        ctx.fillRect(x*box+cx*px,y*box+ry*px,px,px)
+      }
+    })
+  })
 }
 
-function update(){
-  if(paused) return
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height)
 
-  const head={
-    x:(snake[0].x+dir.x+cols)%cols,
-    y:(snake[0].y+dir.y+rows)%rows,
-    color:snake[0].color
+  const head=snake[0]
+  let nx=head.x
+  let ny=head.y
+
+  if(dir==="UP")ny--
+  if(dir==="DOWN")ny++
+  if(dir==="LEFT")nx--
+  if(dir==="RIGHT")nx++
+
+  if(nx<0||ny<0||nx>=15||ny>=15||snake.some(s=>s.x===nx&&s.y===ny)){
+    clearInterval(game)
+    alert("Игра окончена! Очки: "+score)
+    location.reload()
   }
 
-  if(snake.some(p=>p.x===head.x&&p.y===head.y)) return gameOver()
-
-  snake.unshift(head)
-
-  if(head.x===food.x&&head.y===food.y){
+  if(nx===food.x&&ny===food.y){
     score++
-    snake[0].color=randColor()
-    document.getElementById("score").innerText=score
-    beep(900)
+    document.getElementById("score").innerText="Очки: "+score
     spawnFood()
   }else{
     snake.pop()
   }
-}
 
-function draw(){
-  ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--canvas')
-  ctx.fillRect(0,0,320,320)
+  snake.unshift({x:nx,y:ny})
 
-  ctx.font="18px serif"
-  ctx.fillText(food.icon,food.x*box+2,food.y*box+18)
+  drawHead(snake[0].x,snake[0].y,skins[currentSkin].color)
 
-  snake.forEach(p=>{
-    ctx.fillStyle=p.color
-    ctx.fillRect(p.x*box,p.y*box,box-2,box-2)
+  ctx.fillStyle=skins[currentSkin].color
+  snake.slice(1).forEach(s=>{
+    ctx.fillRect(s.x*box+3,s.y*box+3,box-6,box-6)
   })
-}
 
-setInterval(()=>{update();draw()},150)
-
-function setDir(x,y){
-  if(!paused&&!(dir.x===-x&&dir.y===-y)) dir={x,y}
-}
-
-document.querySelector(".up").onclick=()=>setDir(0,-1)
-document.querySelector(".down").onclick=()=>setDir(0,1)
-document.querySelector(".left").onclick=()=>setDir(-1,0)
-document.querySelector(".right").onclick=()=>setDir(1,0)
-
-document.getElementById("pauseBtn").onclick=()=>paused=!paused
-document.getElementById("themeBtn").onclick=()=>document.body.classList.toggle("light")
-
-function exitToMenu(){
-  paused=true
-  document.getElementById("gameOverScreen").style.display="none"
-  document.getElementById("startScreen").style.display="flex"
-}
-
-document.getElementById("menuBtn").onclick=exitToMenu
-document.getElementById("exitBtn").onclick=exitToMenu
-
-document.getElementById("playBtn").onclick=()=>{
-  document.getElementById("startScreen").style.display="none"
-  beep(500)
-  start()
-}
-
-document.getElementById("restartBtn").onclick=()=>{
-  document.getElementById("gameOverScreen").style.display="none"
-  beep(500)
-  start()
-}
-
-document.getElementById("inviteBtn").onclick=async()=>{
-  const link=location.href
-  if(navigator.share){
-    navigator.share({title:"МалоРиса",text:"Побей мой рекорд!",url:link})
-  }else{
-    await navigator.clipboard.writeText(link)
-    alert("Ссылка скопирована")
-  }
+  ctx.fillStyle="#ffd700"
+  ctx.fillRect(food.x*box+6,food.y*box+6,box-12,box-12)
 }
 </script>
-
 </body>
 </html>
