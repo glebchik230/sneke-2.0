@@ -2,235 +2,210 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>МалоРиса — Змейка</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --bg:#111;
-  --panel:#1c1c1c;
-  --canvas:#000;
-  --text:#fff;
-  --accent:#ff6b9a;
+  --bg:#111; --panel:#1c1c1c; --canvas:#000; --text:#fff; --accent:#ff6b9a;
 }
-
+body.light{
+  --bg:#f3f3f3; --panel:#fff; --canvas:#e6e6e6; --text:#111;
+}
 *{margin:0;padding:0;box-sizing:border-box}
 body{
-  background:var(--bg);
-  color:var(--text);
+  background:var(--bg); color:var(--text);
   font-family:system-ui,sans-serif;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  height:100vh;
+  display:flex; flex-direction:column; align-items:center;
+  height:100vh; touch-action:none;
 }
-
 header{
-  width:100%;
-  padding:12px;
-  display:flex;
-  justify-content:space-between;
+  width:100%; padding:12px;
+  display:flex; justify-content:space-between; align-items:center;
   background:var(--panel);
 }
-
-canvas{
-  background:var(--canvas);
-  border-radius:12px;
-  margin:10px 0;
+.title{
+  font-family:'Press Start 2P'; font-size:14px; color:var(--accent);
 }
-
+.btn-ui{
+  font-size:14px; padding:6px 10px; border-radius:10px;
+  background:#2a2a2a; color:#fff;
+}
+canvas{background:var(--canvas); border-radius:12px; margin:10px 0}
+.controls{
+  display:grid; grid-template-columns:repeat(3,70px);
+  grid-template-rows:repeat(2,70px); gap:10px;
+}
+.btn{
+  background:#222; border-radius:14px;
+  display:flex; justify-content:center; align-items:center;
+  font-size:28px;
+}
 .overlay{
-  position:fixed;
-  inset:0;
-  background:var(--bg);
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  z-index:10;
+  position:fixed; inset:0; background:var(--bg);
+  display:flex; flex-direction:column;
+  justify-content:center; align-items:center; z-index:10;
 }
-
+.logo{
+  font-family:'Press Start 2P'; font-size:24px;
+  color:var(--accent); margin-bottom:30px;
+}
 .pixel-btn{
-  font-family:'Press Start 2P';
-  padding:14px 24px;
-  border-radius:14px;
-  background:var(--accent);
-  color:#000;
-  margin-top:12px;
-  cursor:pointer;
+  font-family:'Press Start 2P'; font-size:14px;
+  padding:16px 28px; border-radius:14px;
+  background:var(--accent); color:#000; margin-top:14px;
 }
-
-.small{font-size:11px;padding:10px 18px}
-
-.shop{
-  margin-top:20px;
-  text-align:center;
-}
-
-.skin{
-  border:2px solid #333;
-  padding:10px;
-  margin-top:8px;
-  border-radius:10px;
-  cursor:pointer;
-}
-
-.skin.active{border-color:var(--accent)}
-
+.pixel-btn.small{font-size:10px;padding:8px 16px}
 </style>
 </head>
 
 <body>
 
 <div class="overlay" id="startScreen">
-  <h2>МАЛОРИСА</h2>
-
-  <div class="shop">
-    <b>Скины головы</b>
-
-    <div class="skin active" data-skin="default">Обычная (бесплатно)</div>
-    <div class="skin" data-skin="gold">Золотая — 15 очков</div>
-    <div class="skin" data-skin="neon">Неон — 30 очков</div>
-    <div class="skin" data-skin="ruby">Рубин — 50 очков</div>
-  </div>
-
+  <div class="logo">МАЛОРИСА</div>
   <div class="pixel-btn" id="playBtn">ИГРАТЬ</div>
+  <div class="pixel-btn small" id="inviteBtn">ПРИГЛАСИТЬ ДРУГА</div>
+</div>
 
-  <div style="margin-top:20px;font-size:12px">
-    <b>Рекорды</b>
-    <ol id="records"></ol>
-  </div>
+<div class="overlay" id="gameOverScreen" style="display:none">
+  <div class="logo">GAME OVER</div>
+  <div id="finalInfo"></div>
+  <div class="pixel-btn" id="restartBtn">СНОВА</div>
+  <div class="pixel-btn small" id="saveBtn" style="display:none">СОХРАНИТЬ РЕКОРД</div>
+  <div class="pixel-btn small" id="exitBtn">В МЕНЮ</div>
 </div>
 
 <header>
   <span id="score">0</span>
-  <span>МАЛОРИСА</span>
-  <span id="record">0</span>
+  <span class="title">МАЛОРИСА</span>
+  <span style="display:flex;gap:6px">
+    <span id="record">0</span>
+    <span class="btn-ui" id="pauseBtn">⏸</span>
+    <span class="btn-ui" id="menuBtn">⏮</span>
+  </span>
 </header>
 
 <canvas id="game" width="320" height="320"></canvas>
 
+<div class="controls">
+  <div></div><div class="btn" onclick="setDir(0,-1)">▲</div><div></div>
+  <div class="btn" onclick="setDir(-1,0)">◀</div>
+  <div class="btn" onclick="setDir(0,1)">▼</div>
+  <div class="btn" onclick="setDir(1,0)">▶</div>
+</div>
+
 <script>
-const canvas=document.getElementById("game")
-const ctx=canvas.getContext("2d")
-const box=20, cols=16, rows=16
-
+const canvas=document.getElementById("game"),ctx=canvas.getContext("2d")
+const box=20,cols=16,rows=16
 let snake,dir,food,score,paused=true
-let selectedSkin=localStorage.getItem("headSkin")||"default"
+let speed=150,interval
+let record=+localStorage.getItem("record")||0
+let goldMode=false
 
-const skins={
-  default:"#ff6b9a",
-  gold:"#ffd700",
-  neon:"#00ffe7",
-  ruby:"#ff2d55"
-}
+const COLORS=["#ff6b9a","#6bffb0","#6bd4ff","#ffe66b"]
+const GOLD="#ffd700"
 
-let records=JSON.parse(localStorage.getItem("records"))||[
-  {name:"Глеб",score:40},
-  {name:"Аня",score:30},
-  {name:"Макс",score:20}
-]
+document.getElementById("record").innerText=record
 
-function saveRecords(){
-  localStorage.setItem("records",JSON.stringify(records))
-}
-
-function renderRecords(){
-  const list=document.getElementById("records")
-  list.innerHTML=""
-  records.forEach(r=>{
-    const li=document.createElement("li")
-    li.textContent=`${r.name} — ${r.score}`
-    list.appendChild(li)
-  })
-}
-renderRecords()
-
-document.querySelectorAll(".skin").forEach(el=>{
-  el.onclick=()=>{
-    const skin=el.dataset.skin
-    const cost={default:0,gold:15,neon:30,ruby:50}[skin]
-    if(cost>localStorage.getItem("totalScore")-0){
-      alert("Недостаточно очков")
-      return
-    }
-    selectedSkin=skin
-    localStorage.setItem("headSkin",skin)
-    document.querySelectorAll(".skin").forEach(s=>s.classList.remove("active"))
-    el.classList.add("active")
-  }
-})
+function randColor(){return COLORS[Math.floor(Math.random()*COLORS.length)]}
 
 function start(){
-  snake=[{x:8,y:8}]
-  dir={x:1,y:0}
-  score=0
-  paused=false
-  spawnFood()
+  snake=[{x:8,y:8,color:randColor()}]
+  dir={x:1,y:0}; score=0; speed=150; goldMode=false
+  document.getElementById("score").innerText=0
+  spawnFood(); paused=false
+  clearInterval(interval)
+  interval=setInterval(loop,speed)
 }
 
 function spawnFood(){
+  const r=Math.random()
   food={
-    x:Math.floor(Math.random()*cols),
-    y:Math.floor(Math.random()*rows)
+    x:Math.random()*cols|0,
+    y:Math.random()*rows|0,
+    type:r<0.15?"special":"normal",
+    icon:r<0.05?"⚡":r<0.1?"🐢":r<0.15?"⭐":"🍣"
   }
 }
 
-function gameOver(){
-  paused=true
-  let total=localStorage.getItem("totalScore")-0||0
-  total+=score
-  localStorage.setItem("totalScore",total)
-
-  records.push({name:"Ты",score})
-  records.sort((a,b)=>b.score-a.score)
-  records=records.slice(0,5)
-  saveRecords()
-  location.reload()
+function applyEffect(){
+  if(food.icon==="⚡"){speed=80}
+  if(food.icon==="🐢"){speed=220}
+  if(food.icon==="⭐"){goldMode=true;setTimeout(()=>goldMode=false,5000)}
+  clearInterval(interval)
+  interval=setInterval(loop,speed)
 }
 
-function update(){
-  if(paused) return
-  const head={x:(snake[0].x+dir.x+cols)%cols,y:(snake[0].y+dir.y+rows)%rows}
-  if(snake.some(p=>p.x===head.x&&p.y===head.y)) return gameOver()
-  snake.unshift(head)
-
-  if(head.x===food.x&&head.y===food.y){
-    score++
+function loop(){
+  if(paused)return
+  const h={x:(snake[0].x+dir.x+cols)%cols,y:(snake[0].y+dir.y+rows)%rows}
+  if(snake.some(p=>p.x===h.x&&p.y===h.y))return gameOver()
+  snake.unshift(h)
+  if(h.x===food.x&&h.y===food.y){
+    let isGold=Math.random()<0.1||goldMode
+    snake[0].color=isGold?GOLD:randColor()
+    score+=isGold?3:1
     document.getElementById("score").innerText=score
+    if(food.type==="special")applyEffect()
     spawnFood()
   }else snake.pop()
+  draw()
 }
 
 function draw(){
-  ctx.fillStyle="#000"
-  ctx.fillRect(0,0,320,320)
-
-  ctx.fillStyle="#fff"
-  ctx.fillRect(food.x*box+6,food.y*box+6,8,8)
-
-  snake.forEach((p,i)=>{
-    ctx.fillStyle=i===0?skins[selectedSkin]:"#ff6b9a"
+  ctx.fillStyle="#000";ctx.fillRect(0,0,320,320)
+  ctx.font="18px serif"
+  ctx.fillText(food.icon,food.x*box+2,food.y*box+18)
+  snake.forEach(p=>{
+    ctx.fillStyle=p.color
     ctx.fillRect(p.x*box,p.y*box,box-2,box-2)
   })
 }
 
-setInterval(()=>{update();draw()},150)
+function gameOver(){
+  paused=true; clearInterval(interval)
+  let newRec=score>record
+  if(newRec){record=score;localStorage.setItem("record",record)}
+  document.getElementById("record").innerText=record
+  document.getElementById("finalInfo").innerText=`СЧЁТ: ${score} | РЕКОРД: ${record}`
+  document.getElementById("saveBtn").style.display=newRec?"block":"none"
+  document.getElementById("gameOverScreen").style.display="flex"
+}
 
-document.addEventListener("keydown",e=>{
-  if(e.key==="ArrowUp"&&dir.y!==1)dir={x:0,y:-1}
-  if(e.key==="ArrowDown"&&dir.y!==-1)dir={x:0,y:1}
-  if(e.key==="ArrowLeft"&&dir.x!==1)dir={x:-1,y:0}
-  if(e.key==="ArrowRight"&&dir.x!==-1)dir={x:1,y:0}
-})
+function setDir(x,y){
+  if(!(dir.x===-x&&dir.y===-y))dir={x,y}
+}
+
+document.getElementById("saveBtn").onclick=()=>{
+  const link=document.createElement("a")
+  link.download="malorisa-record.png"
+  link.href=canvas.toDataURL()
+  link.click()
+}
+
+document.getElementById("menuBtn").onclick=exit
+document.getElementById("exitBtn").onclick=exit
+function exit(){
+  paused=true
+  document.getElementById("gameOverScreen").style.display="none"
+  document.getElementById("startScreen").style.display="flex"
+}
 
 document.getElementById("playBtn").onclick=()=>{
   document.getElementById("startScreen").style.display="none"
   start()
 }
-</script>
 
+document.getElementById("restartBtn").onclick=()=>{
+  document.getElementById("gameOverScreen").style.display="none"
+  start()
+}
+
+document.getElementById("inviteBtn").onclick=()=>{
+  navigator.share?.({title:"МалоРиса",text:"Побей мой рекорд!",url:location.href})
+}
+</script>
 </body>
 </html>
