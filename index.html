@@ -2,224 +2,235 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Snake | Малориса</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- Yandex Games SDK -->
-<script src="https://sdk.games.s3.yandex.net/sdk.js"></script>
+<title>МалоРиса — Змейка</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
+:root{
+  --bg:#111;
+  --panel:#1c1c1c;
+  --canvas:#000;
+  --text:#fff;
+  --accent:#ff6b9a;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
 body{
-  margin:0;
-  background:#0e0e11;
-  font-family:'Press Start 2P', monospace;
-  color:#fff;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,sans-serif;
   display:flex;
-  justify-content:center;
+  flex-direction:column;
   align-items:center;
   height:100vh;
 }
 
-#gameWrap{
-  width:360px;
-  text-align:center;
+header{
+  width:100%;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  background:var(--panel);
 }
 
 canvas{
-  background:#14141a;
-  border-radius:16px;
-  display:none;
+  background:var(--canvas);
+  border-radius:12px;
+  margin:10px 0;
 }
 
-button{
+.overlay{
+  position:fixed;
+  inset:0;
+  background:var(--bg);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  z-index:10;
+}
+
+.pixel-btn{
   font-family:'Press Start 2P';
-  font-size:11px;
-  padding:14px;
-  width:100%;
-  border:none;
+  padding:14px 24px;
   border-radius:14px;
-  background:#ff7aa2;
+  background:var(--accent);
   color:#000;
-  cursor:pointer;
   margin-top:12px;
+  cursor:pointer;
 }
 
-button:active{transform:scale(.96)}
+.small{font-size:11px;padding:10px 18px}
 
-#startScreen{
-  background:#14141a;
-  padding:20px;
-  border-radius:18px;
+.shop{
+  margin-top:20px;
+  text-align:center;
 }
 
-.skin-btn{
-  background:#222;
+.skin{
+  border:2px solid #333;
   padding:10px;
   margin-top:8px;
-  border-radius:12px;
+  border-radius:10px;
   cursor:pointer;
-  transition:.25s;
 }
 
-.skin-btn.active{
-  background:#ff7aa2;
-  color:#000;
-  transform:scale(1.1);
-  box-shadow:0 0 16px #ff7aa2;
-}
+.skin.active{border-color:var(--accent)}
 
-#score{
-  margin:12px 0;
-}
-
-#records{
-  font-size:10px;
-  margin-top:16px;
-  text-align:left;
-}
 </style>
 </head>
 
 <body>
-<div id="gameWrap">
 
-<div id="startScreen">
-  <h3>ЗМЕЙКА</h3>
+<div class="overlay" id="startScreen">
+  <h2>МАЛОРИСА</h2>
 
-  <div class="skin-btn active" data-skin="malorisa">МАЛОРИСА</div>
-  <div class="skin-btn" data-skin="classic">КЛАССИКА</div>
-  <div class="skin-btn" data-skin="neon">НЕОН</div>
+  <div class="shop">
+    <b>Скины головы</b>
 
-  <button onclick="startGame()">НАЧАТЬ ИГРУ</button>
+    <div class="skin active" data-skin="default">Обычная (бесплатно)</div>
+    <div class="skin" data-skin="gold">Золотая — 15 очков</div>
+    <div class="skin" data-skin="neon">Неон — 30 очков</div>
+    <div class="skin" data-skin="ruby">Рубин — 50 очков</div>
+  </div>
 
-  <div id="records">
-    <b>Рекорды:</b><br>
-    1. Глеб — 42<br>
-    2. Аня — 35<br>
-    3. Макс — 28
+  <div class="pixel-btn" id="playBtn">ИГРАТЬ</div>
+
+  <div style="margin-top:20px;font-size:12px">
+    <b>Рекорды</b>
+    <ol id="records"></ol>
   </div>
 </div>
 
-<div id="score">Очки: 0</div>
-<canvas id="game" width="360" height="360"></canvas>
+<header>
+  <span id="score">0</span>
+  <span>МАЛОРИСА</span>
+  <span id="record">0</span>
+</header>
 
-</div>
+<canvas id="game" width="320" height="320"></canvas>
 
 <script>
-const canvas = document.getElementById("game")
-const ctx = canvas.getContext("2d")
-const box = 24
-let game
+const canvas=document.getElementById("game")
+const ctx=canvas.getContext("2d")
+const box=20, cols=16, rows=16
 
-const skins = {
-  malorisa:{ color:"#ff7aa2" },
-  classic:{ color:"#7CFF7C" },
-  neon:{ color:"#00ffe7" }
+let snake,dir,food,score,paused=true
+let selectedSkin=localStorage.getItem("headSkin")||"default"
+
+const skins={
+  default:"#ff6b9a",
+  gold:"#ffd700",
+  neon:"#00ffe7",
+  ruby:"#ff2d55"
 }
 
-let currentSkin = "malorisa"
+let records=JSON.parse(localStorage.getItem("records"))||[
+  {name:"Глеб",score:40},
+  {name:"Аня",score:30},
+  {name:"Макс",score:20}
+]
 
-const headStyles = {
-  cute:[
-    [0,1,1,1,0],
-    [1,0,1,0,1],
-    [1,1,1,1,1],
-    [1,0,1,0,1],
-    [0,1,1,1,0],
-  ]
+function saveRecords(){
+  localStorage.setItem("records",JSON.stringify(records))
 }
 
-let snake, food, dir, score
+function renderRecords(){
+  const list=document.getElementById("records")
+  list.innerHTML=""
+  records.forEach(r=>{
+    const li=document.createElement("li")
+    li.textContent=`${r.name} — ${r.score}`
+    list.appendChild(li)
+  })
+}
+renderRecords()
 
-document.querySelectorAll(".skin-btn").forEach(btn=>{
-  btn.onclick=()=>{
-    document.querySelectorAll(".skin-btn").forEach(b=>b.classList.remove("active"))
-    btn.classList.add("active")
-    currentSkin = btn.dataset.skin
+document.querySelectorAll(".skin").forEach(el=>{
+  el.onclick=()=>{
+    const skin=el.dataset.skin
+    const cost={default:0,gold:15,neon:30,ruby:50}[skin]
+    if(cost>localStorage.getItem("totalScore")-0){
+      alert("Недостаточно очков")
+      return
+    }
+    selectedSkin=skin
+    localStorage.setItem("headSkin",skin)
+    document.querySelectorAll(".skin").forEach(s=>s.classList.remove("active"))
+    el.classList.add("active")
   }
 })
 
-document.addEventListener("keydown",e=>{
-  if(e.key==="ArrowUp"&&dir!=="DOWN")dir="UP"
-  if(e.key==="ArrowDown"&&dir!=="UP")dir="DOWN"
-  if(e.key==="ArrowLeft"&&dir!=="RIGHT")dir="LEFT"
-  if(e.key==="ArrowRight"&&dir!=="LEFT")dir="RIGHT"
-})
-
-function startGame(){
-  document.getElementById("startScreen").style.display="none"
-  canvas.style.display="block"
-  document.getElementById("score").style.display="block"
-
-  snake=[{x:7,y:7}]
-  dir="RIGHT"
+function start(){
+  snake=[{x:8,y:8}]
+  dir={x:1,y:0}
   score=0
+  paused=false
   spawnFood()
-
-  clearInterval(game)
-  game=setInterval(draw,130)
 }
 
 function spawnFood(){
   food={
-    x:Math.floor(Math.random()*14),
-    y:Math.floor(Math.random()*14)
+    x:Math.floor(Math.random()*cols),
+    y:Math.floor(Math.random()*rows)
   }
 }
 
-function drawHead(x,y,color){
-  const p=headStyles.cute
-  const px=box/5
-  p.forEach((r,ry)=>{
-    r.forEach((c,cx)=>{
-      if(c){
-        ctx.fillStyle=color
-        ctx.fillRect(x*box+cx*px,y*box+ry*px,px,px)
-      }
-    })
-  })
+function gameOver(){
+  paused=true
+  let total=localStorage.getItem("totalScore")-0||0
+  total+=score
+  localStorage.setItem("totalScore",total)
+
+  records.push({name:"Ты",score})
+  records.sort((a,b)=>b.score-a.score)
+  records=records.slice(0,5)
+  saveRecords()
+  location.reload()
+}
+
+function update(){
+  if(paused) return
+  const head={x:(snake[0].x+dir.x+cols)%cols,y:(snake[0].y+dir.y+rows)%rows}
+  if(snake.some(p=>p.x===head.x&&p.y===head.y)) return gameOver()
+  snake.unshift(head)
+
+  if(head.x===food.x&&head.y===food.y){
+    score++
+    document.getElementById("score").innerText=score
+    spawnFood()
+  }else snake.pop()
 }
 
 function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height)
+  ctx.fillStyle="#000"
+  ctx.fillRect(0,0,320,320)
 
-  const head=snake[0]
-  let nx=head.x
-  let ny=head.y
+  ctx.fillStyle="#fff"
+  ctx.fillRect(food.x*box+6,food.y*box+6,8,8)
 
-  if(dir==="UP")ny--
-  if(dir==="DOWN")ny++
-  if(dir==="LEFT")nx--
-  if(dir==="RIGHT")nx++
-
-  if(nx<0||ny<0||nx>=15||ny>=15||snake.some(s=>s.x===nx&&s.y===ny)){
-    clearInterval(game)
-    alert("Игра окончена! Очки: "+score)
-    location.reload()
-  }
-
-  if(nx===food.x&&ny===food.y){
-    score++
-    document.getElementById("score").innerText="Очки: "+score
-    spawnFood()
-  }else{
-    snake.pop()
-  }
-
-  snake.unshift({x:nx,y:ny})
-
-  drawHead(snake[0].x,snake[0].y,skins[currentSkin].color)
-
-  ctx.fillStyle=skins[currentSkin].color
-  snake.slice(1).forEach(s=>{
-    ctx.fillRect(s.x*box+3,s.y*box+3,box-6,box-6)
+  snake.forEach((p,i)=>{
+    ctx.fillStyle=i===0?skins[selectedSkin]:"#ff6b9a"
+    ctx.fillRect(p.x*box,p.y*box,box-2,box-2)
   })
+}
 
-  ctx.fillStyle="#ffd700"
-  ctx.fillRect(food.x*box+6,food.y*box+6,box-12,box-12)
+setInterval(()=>{update();draw()},150)
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowUp"&&dir.y!==1)dir={x:0,y:-1}
+  if(e.key==="ArrowDown"&&dir.y!==-1)dir={x:0,y:1}
+  if(e.key==="ArrowLeft"&&dir.x!==1)dir={x:-1,y:0}
+  if(e.key==="ArrowRight"&&dir.x!==-1)dir={x:1,y:0}
+})
+
+document.getElementById("playBtn").onclick=()=>{
+  document.getElementById("startScreen").style.display="none"
+  start()
 }
 </script>
+
 </body>
 </html>
