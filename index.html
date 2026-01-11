@@ -120,6 +120,13 @@ body.light .btn{background:#ddd;color:#000}
   margin-top:16px;
 }
 
+/* уменьшенная кнопка */
+.pixel-btn.small{
+  font-size:10px;
+  padding:10px 18px;
+  opacity:.9;
+}
+
 .gameover{
   font-family:'Press Start 2P', monospace;
   font-size:18px;
@@ -135,7 +142,7 @@ body.light .btn{background:#ddd;color:#000}
 <div class="overlay" id="startScreen">
   <div class="logo">МАЛОРИСА</div>
   <div class="pixel-btn" id="playBtn">ИГРАТЬ</div>
-  <div class="pixel-btn" id="inviteBtn">ПРИГЛАСИТЬ ДРУГА</div>
+  <div class="pixel-btn small" id="inviteBtn">ПРИГЛАСИТЬ ДРУГА</div>
 </div>
 
 <!-- Game Over -->
@@ -146,7 +153,7 @@ body.light .btn{background:#ddd;color:#000}
     Рекорд: <span id="finalRecord">0</span>
   </div>
   <div class="pixel-btn" id="restartBtn">СНОВА</div>
-  <div class="pixel-btn" id="exitBtn">В МЕНЮ</div>
+  <div class="pixel-btn small" id="exitBtn">В МЕНЮ</div>
 </div>
 
 <header>
@@ -172,6 +179,8 @@ const canvas=document.getElementById("game")
 const ctx=canvas.getContext("2d")
 const box=20, cols=16, rows=16
 
+const colors=["#ff6b9a","#6bffb0","#6bd4ff","#ffe66b","#c77dff"]
+
 let snake,dir,food,score,paused=true
 let record=localStorage.getItem("malorisa_record")||0
 
@@ -181,6 +190,10 @@ document.getElementById("finalRecord").innerText=record
 const foods=["🍣","🍟","🍔","🍕"]
 const audioCtx=new (window.AudioContext||window.webkitAudioContext)()
 
+function randColor(){
+  return colors[Math.floor(Math.random()*colors.length)]
+}
+
 function beep(f=600,t=0.1){
   const o=audioCtx.createOscillator(),g=audioCtx.createGain()
   o.type="square";o.frequency.value=f
@@ -189,7 +202,7 @@ function beep(f=600,t=0.1){
 }
 
 function start(){
-  snake=[{x:8,y:8}]
+  snake=[{x:8,y:8,color:randColor()}]
   dir={x:1,y:0}
   score=0
   paused=false
@@ -219,22 +232,39 @@ function gameOver(){
 
 function update(){
   if(paused) return
-  const head={x:(snake[0].x+dir.x+cols)%cols,y:(snake[0].y+dir.y+rows)%rows}
+
+  const head={
+    x:(snake[0].x+dir.x+cols)%cols,
+    y:(snake[0].y+dir.y+rows)%rows,
+    color:snake[0].color
+  }
+
   if(snake.some(p=>p.x===head.x&&p.y===head.y)) return gameOver()
+
   snake.unshift(head)
+
   if(head.x===food.x&&head.y===food.y){
-    score++;document.getElementById("score").innerText=score
-    beep(900);spawnFood()
-  }else snake.pop()
+    score++
+    snake[0].color=randColor()
+    document.getElementById("score").innerText=score
+    beep(900)
+    spawnFood()
+  }else{
+    snake.pop()
+  }
 }
 
 function draw(){
   ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--canvas')
   ctx.fillRect(0,0,320,320)
+
   ctx.font="18px serif"
   ctx.fillText(food.icon,food.x*box+2,food.y*box+18)
-  ctx.fillStyle="#ff6b9a"
-  snake.forEach(p=>ctx.fillRect(p.x*box,p.y*box,box-2,box-2))
+
+  snake.forEach(p=>{
+    ctx.fillStyle=p.color
+    ctx.fillRect(p.x*box,p.y*box,box-2,box-2)
+  })
 }
 
 setInterval(()=>{update();draw()},150)
@@ -262,12 +292,14 @@ document.getElementById("exitBtn").onclick=exitToMenu
 
 document.getElementById("playBtn").onclick=()=>{
   document.getElementById("startScreen").style.display="none"
-  beep(500);start()
+  beep(500)
+  start()
 }
 
 document.getElementById("restartBtn").onclick=()=>{
   document.getElementById("gameOverScreen").style.display="none"
-  beep(500);start()
+  beep(500)
+  start()
 }
 
 document.getElementById("inviteBtn").onclick=async()=>{
