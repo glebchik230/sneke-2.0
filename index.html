@@ -196,9 +196,10 @@ function setDir(x,y){
 
 // Сохранение скриншота с рекордом и логотипом
 document.getElementById("saveBtn").onclick = () => {
+  const extraTop = 100; // место сверху для текста
   const tempCanvas = document.createElement("canvas");
   tempCanvas.width = canvas.width;
-  tempCanvas.height = canvas.height + 60; // место для текста
+  tempCanvas.height = canvas.height + extraTop;
   const tctx = tempCanvas.getContext("2d");
 
   // фон
@@ -208,23 +209,23 @@ document.getElementById("saveBtn").onclick = () => {
   // рисуем змейку
   snake.forEach(p => {
     tctx.fillStyle = p.color;
-    tctx.fillRect(p.x * box, p.y * box + 60, box - 2, box - 2);
+    tctx.fillRect(p.x * box, p.y * box + extraTop, box - 2, box - 2);
   });
 
   // рисуем еду
   tctx.font = "18px serif";
-  tctx.fillText(food.icon, food.x * box + 2, food.y * box + 18 + 60);
+  tctx.fillText(food.icon, food.x * box + 2, food.y * box + 18 + extraTop);
 
   // надпись МАЛОРИСА
   tctx.fillStyle = "#ff6b9a";
-  tctx.font = "24px 'Press Start 2P'";
+  tctx.font = "28px 'Press Start 2P'";
   tctx.textAlign = "center";
-  tctx.fillText("МАЛОРИСА", tempCanvas.width / 2, 30);
+  tctx.fillText("МАЛОРИСА", tempCanvas.width / 2, 40);
 
   // рекорд
   tctx.fillStyle = "#fff";
   tctx.font = "18px 'Press Start 2P'";
-  tctx.fillText(`СЧЁТ: ${score} | РЕКОРД: ${record}`, tempCanvas.width / 2, 55);
+  tctx.fillText(`СЧЁТ: ${score} | РЕКОРД: ${record}`, tempCanvas.width / 2, 75);
 
   // сохраняем
   const link = document.createElement("a");
