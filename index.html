@@ -14,12 +14,14 @@
   --canvas:#000;
   --text:#fff;
   --accent:#ff6b9a;
+  --grid:#1a1a1a;
 }
 body.light{
   --bg:#f3f3f3;
   --panel:#fff;
   --canvas:#e6e6e6;
   --text:#111;
+  --grid:#d0d0d0;
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -62,6 +64,7 @@ canvas{
   background:var(--canvas);
   border-radius:14px;
   margin:10px 0;
+  image-rendering:pixelated;
 }
 
 .controls{
@@ -101,12 +104,6 @@ body.light .btn{background:#ddd;color:#000}
   font-size:24px;
   color:var(--accent);
   margin-bottom:30px;
-  animation:float 2.5s ease-in-out infinite;
-}
-@keyframes float{
-  0%{transform:translateY(0)}
-  50%{transform:translateY(-12px)}
-  100%{transform:translateY(0)}
 }
 
 .pixel-btn{
@@ -117,10 +114,6 @@ body.light .btn{background:#ddd;color:#000}
   color:#000;
 }
 
-.gameover{
-  font-family:'Press Start 2P', monospace;
-  margin-bottom:16px;
-}
 .small{font-size:12px;margin-top:8px}
 </style>
 </head>
@@ -133,7 +126,7 @@ body.light .btn{background:#ddd;color:#000}
 </div>
 
 <div class="overlay" id="over" style="display:none">
-  <div class="gameover">GAME OVER</div>
+  <div class="logo">GAME OVER</div>
   <div class="small">
     Счет: <span id="finalScore">0</span> |
     Рекорд: <span id="finalRecord">0</span>
@@ -146,6 +139,7 @@ body.light .btn{background:#ddd;color:#000}
   <span class="title">МАЛОРИСА</span>
   <span style="display:flex;gap:6px">
     <span id="record">0</span>
+    <span class="btn-ui" id="sound">🔊</span>
     <span class="btn-ui" id="pause">⏸</span>
     <span class="btn-ui" id="theme">☀︎ / 🌙</span>
   </span>
@@ -159,156 +153,197 @@ body.light .btn{background:#ddd;color:#000}
 </div>
 
 <script>
-const canvas = document.getElementById("game")
-const ctx = canvas.getContext("2d")
+const Game = (() => {
+  const canvas = document.getElementById("game")
+  const ctx = canvas.getContext("2d")
+  ctx.imageSmoothingEnabled = false
 
-const box = 20
-const cols = canvas.width / box
-const rows = canvas.height / box
+  const box = 20
+  const cols = canvas.width / box
+  const rows = canvas.height / box
 
-let snake, dir, food, score, paused=true
-let record = localStorage.getItem("malorisa_record") || 0
+  const foods = ["🍣","🍟","🍔","🍕"]
 
-document.getElementById("record").innerText = record
-document.getElementById("finalRecord").innerText = record
+  let snake, dir, food, score, paused=true
+  let record = localStorage.getItem("malorisa_record") || 0
+  let soundOn = localStorage.getItem("malorisa_sound") !== "0"
+  let audioCtx
 
-const foods = ["🍣","🍟","🍔","🍕"]
+  document.getElementById("record").innerText = record
+  document.getElementById("finalRecord").innerText = record
+  document.getElementById("sound").innerText = soundOn ? "🔊" : "🔇"
 
-let audioCtx
-function initAudio(){
-  if(!audioCtx){
-    audioCtx = new (window.AudioContext||window.webkitAudioContext)()
-  }
-}
-function beep(freq, time=0.1){
-  const o = audioCtx.createOscillator()
-  const g = audioCtx.createGain()
-  o.type="square"
-  o.frequency.value=freq
-  g.gain.value=0.08
-  o.connect(g).connect(audioCtx.destination)
-  o.start()
-  o.stop(audioCtx.currentTime+time)
-}
-
-function startGame(){
-  snake=[{x:10,y:10}]
-  dir={x:1,y:0}
-  score=0
-  paused=false
-  document.getElementById("score").innerText=0
-  spawnFood()
-}
-
-function spawnFood(){
-  do{
-    food={
-      x:Math.floor(Math.random()*cols),
-      y:Math.floor(Math.random()*rows),
-      icon:foods[Math.floor(Math.random()*foods.length)]
+  const initAudio = () => {
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext||window.webkitAudioContext)()
     }
-  }while(snake.some(p=>p.x===food.x&&p.y===food.y))
-}
-
-function gameOver(){
-  paused=true
-  if(score>record){
-    record=score
-    localStorage.setItem("malorisa_record",record)
-  }
-  document.getElementById("finalScore").innerText=score
-  document.getElementById("record").innerText=record
-  document.getElementById("finalRecord").innerText=record
-  document.getElementById("over").style.display="flex"
-}
-
-function update(){
-  if(paused) return
-
-  const head={
-    x:(snake[0].x+dir.x+cols)%cols,
-    y:(snake[0].y+dir.y+rows)%rows
   }
 
-  if(snake.some(p=>p.x===head.x&&p.y===head.y)){
-    gameOver()
-    return
+  const beep = (freq) => {
+    if(!soundOn || !audioCtx) return
+    const o = audioCtx.createOscillator()
+    const g = audioCtx.createGain()
+    o.type="square"
+    o.frequency.value=freq
+    g.gain.value=0.08
+    o.connect(g).connect(audioCtx.destination)
+    o.start()
+    o.stop(audioCtx.currentTime+0.1)
   }
 
-  snake.unshift(head)
+  const vibrate = () => {
+    if(navigator.vibrate) navigator.vibrate(20)
+  }
 
-  if(head.x===food.x&&head.y===food.y){
-    score++
-    document.getElementById("score").innerText=score
-    beep(880)
+  const spawnFood = () => {
+    do{
+      food = {
+        x:Math.floor(Math.random()*cols),
+        y:Math.floor(Math.random()*rows),
+        icon:foods[Math.floor(Math.random()*foods.length)]
+      }
+    }while(snake.some(p=>p.x===food.x&&p.y===food.y))
+  }
+
+  const start = () => {
+    snake=[{x:10,y:10}]
+    dir={x:1,y:0}
+    score=0
+    paused=false
+    document.getElementById("score").innerText=0
     spawnFood()
-  }else snake.pop()
-}
-
-function draw(){
-  ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--canvas')
-  ctx.fillRect(0,0,canvas.width,canvas.height)
-
-  ctx.font="18px serif"
-  ctx.fillText(food.icon, food.x*box+2, food.y*box+18)
-
-  snake.forEach((p,i)=>{
-    ctx.fillStyle=i===0?"#ffd1e1":"#ff6b9a"
-    ctx.fillRect(p.x*box,p.y*box,box-2,box-2)
-  })
-}
-
-setInterval(()=>{update();draw()},150)
-
-function setDir(x,y){
-  if(dir.x!==-x||dir.y!==-y) dir={x,y}
-}
-
-/* кнопки */
-document.querySelector(".up").onpointerdown=()=>setDir(0,-1)
-document.querySelector(".down").onpointerdown=()=>setDir(0,1)
-document.querySelector(".left").onpointerdown=()=>setDir(-1,0)
-document.querySelector(".right").onpointerdown=()=>setDir(1,0)
-
-/* клавиатура */
-document.addEventListener("keydown",e=>{
-  if(e.key==="ArrowUp"||e.key==="w")setDir(0,-1)
-  if(e.key==="ArrowDown"||e.key==="s")setDir(0,1)
-  if(e.key==="ArrowLeft"||e.key==="a")setDir(-1,0)
-  if(e.key==="ArrowRight"||e.key==="d")setDir(1,0)
-})
-
-/* свайпы */
-let sx,sy
-canvas.addEventListener("pointerdown",e=>{sx=e.clientX;sy=e.clientY})
-canvas.addEventListener("pointerup",e=>{
-  const dx=e.clientX-sx, dy=e.clientY-sy
-  if(Math.abs(dx)>Math.abs(dy)){
-    if(dx>20)setDir(1,0)
-    if(dx<-20)setDir(-1,0)
-  }else{
-    if(dy>20)setDir(0,1)
-    if(dy<-20)setDir(0,-1)
   }
-})
 
-document.getElementById("pause").onpointerdown=()=>{
-  paused=!paused
-  document.getElementById("pause").innerText=paused?"▶":"⏸"
-}
-document.getElementById("theme").onpointerdown=()=>document.body.classList.toggle("light")
+  const gameOver = () => {
+    paused=true
+    if(score>record){
+      record=score
+      localStorage.setItem("malorisa_record",record)
+    }
+    document.getElementById("finalScore").innerText=score
+    document.getElementById("record").innerText=record
+    document.getElementById("finalRecord").innerText=record
+    document.getElementById("over").style.display="flex"
+  }
+
+  const update = () => {
+    if(paused) return
+
+    const head={
+      x:(snake[0].x+dir.x+cols)%cols,
+      y:(snake[0].y+dir.y+rows)%rows
+    }
+
+    if(snake.some(p=>p.x===head.x&&p.y===head.y)){
+      gameOver()
+      return
+    }
+
+    snake.unshift(head)
+
+    if(head.x===food.x&&head.y===food.y){
+      score++
+      document.getElementById("score").innerText=score
+      beep(880)
+      vibrate()
+      spawnFood()
+    }else snake.pop()
+  }
+
+  const drawGrid = () => {
+    ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--grid')
+    for(let i=0;i<cols;i++){
+      ctx.beginPath()
+      ctx.moveTo(i*box,0)
+      ctx.lineTo(i*box,canvas.height)
+      ctx.stroke()
+    }
+    for(let i=0;i<rows;i++){
+      ctx.beginPath()
+      ctx.moveTo(0,i*box)
+      ctx.lineTo(canvas.width,i*box)
+      ctx.stroke()
+    }
+  }
+
+  const drawHeadEyes = (x,y) => {
+    const cx = x*box + box/2
+    const cy = y*box + box/2
+    const ox = dir.x * 4
+    const oy = dir.y * 4
+
+    ctx.fillStyle="#fff"
+    ctx.beginPath()
+    ctx.arc(cx-4+ox, cy-4+oy, 2, 0, Math.PI*2)
+    ctx.arc(cx+4+ox, cy-4+oy, 2, 0, Math.PI*2)
+    ctx.fill()
+
+    ctx.fillStyle="#000"
+    ctx.beginPath()
+    ctx.arc(cx-4+ox, cy-4+oy, 1, 0, Math.PI*2)
+    ctx.arc(cx+4+ox, cy-4+oy, 1, 0, Math.PI*2)
+    ctx.fill()
+  }
+
+  const draw = () => {
+    ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--canvas')
+    ctx.fillRect(0,0,canvas.width,canvas.height)
+    drawGrid()
+
+    ctx.font="18px serif"
+    ctx.fillText(food.icon, food.x*box+2, food.y*box+18)
+
+    snake.forEach((p,i)=>{
+      ctx.fillStyle=i===0?"#ffd1e1":"#ff6b9a"
+      ctx.fillRect(p.x*box+1,p.y*box+1,box-2,box-2)
+      if(i===0) drawHeadEyes(p.x,p.y)
+    })
+  }
+
+  setInterval(()=>{update();draw()},150)
+
+  const setDir = (x,y) => {
+    if(dir.x!==-x||dir.y!==-y) dir={x,y}
+  }
+
+  return { start, setDir, initAudio, beep, toggleSound:()=>{
+    soundOn=!soundOn
+    localStorage.setItem("malorisa_sound",soundOn?"1":"0")
+    document.getElementById("sound").innerText = soundOn?"🔊":"🔇"
+  }}
+})()
+
+/* controls */
+document.querySelector(".up").onpointerdown=()=>Game.setDir(0,-1)
+document.querySelector(".down").onpointerdown=()=>Game.setDir(0,1)
+document.querySelector(".left").onpointerdown=()=>Game.setDir(-1,0)
+document.querySelector(".right").onpointerdown=()=>Game.setDir(1,0)
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowUp"||e.key==="w")Game.setDir(0,-1)
+  if(e.key==="ArrowDown"||e.key==="s")Game.setDir(0,1)
+  if(e.key==="ArrowLeft"||e.key==="a")Game.setDir(-1,0)
+  if(e.key==="ArrowRight"||e.key==="d")Game.setDir(1,0)
+})
 
 document.getElementById("play").onpointerdown=()=>{
-  initAudio()
-  beep(440,0.15)
+  Game.initAudio()
+  Game.beep(440)
   document.getElementById("start").style.display="none"
-  startGame()
+  Game.start()
 }
 document.getElementById("restart").onpointerdown=()=>{
-  beep(440,0.15)
+  Game.beep(440)
   document.getElementById("over").style.display="none"
-  startGame()
+  Game.start()
 }
+
+document.getElementById("pause").onpointerdown=()=>{
+  Game.setDir(0,0)
+}
+document.getElementById("sound").onpointerdown=()=>Game.toggleSound()
+document.getElementById("theme").onpointerdown=()=>document.body.classList.toggle("light")
 </script>
 </body>
 </html>
+
