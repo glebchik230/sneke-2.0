@@ -133,6 +133,7 @@ body.light .btn{background:#ddd;color:#000}
   background:var(--accent);
   color:#000;
   margin-top:12px;
+  user-select:none;
 }
 
 .pixel-btn.secondary{
@@ -154,13 +155,22 @@ body.light .btn{background:#ddd;color:#000}
 
 <body>
 
-<!-- START -->
+<!-- MAIN MENU -->
 <div class="overlay" id="start">
   <div class="logo">МАЛОРИСА</div>
   <div class="pixel-btn" id="play">ИГРАТЬ</div>
 
   <div class="pixel-btn secondary" id="invite">ПРИГЛАСИТЬ ДРУГА</div>
+  <div class="pixel-btn secondary" id="site">ПЕРЕЙТИ НА САЙТ</div>
+
   <div class="small" id="toast"></div>
+</div>
+
+<!-- PAUSE MENU -->
+<div class="overlay" id="pauseMenu" style="display:none">
+  <div class="logo" style="animation:none">ПАУЗА</div>
+  <div class="pixel-btn" id="resume">ПРОДОЛЖИТЬ</div>
+  <div class="pixel-btn secondary" id="toMenu">В ГЛАВНОЕ МЕНЮ</div>
 </div>
 
 <!-- GAME OVER -->
@@ -171,6 +181,7 @@ body.light .btn{background:#ddd;color:#000}
     Рекорд: <span id="finalRecord">0</span>
   </div>
   <div class="pixel-btn" id="restart">СНОВА</div>
+  <div class="pixel-btn secondary" id="menuFromOver">В ГЛАВНОЕ МЕНЮ</div>
 </div>
 
 <header>
@@ -202,15 +213,25 @@ body.light .btn{background:#ddd;color:#000}
 
   const UI = {
     start: $("start"),
+    pauseMenu: $("pauseMenu"),
     over: $("over"),
+
     play: $("play"),
     invite: $("invite"),
+    site: $("site"),
     toast: $("toast"),
+
+    resume: $("resume"),
+    toMenu: $("toMenu"),
+
     restart: $("restart"),
+    menuFromOver: $("menuFromOver"),
+
     score: $("score"),
     record: $("record"),
     finalScore: $("finalScore"),
     finalRecord: $("finalRecord"),
+
     pause: $("pause"),
     theme: $("theme"),
     sound: $("sound"),
@@ -248,9 +269,7 @@ body.light .btn{background:#ddd;color:#000}
       try {
         await navigator.share({ title: "МалоРиса — Змейка", text, url })
         return
-      } catch {
-        // пользователь мог отменить — это нормально
-      }
+      } catch {}
     }
 
     const fallback = `${text}\n${url}`
@@ -304,6 +323,19 @@ body.light .btn{background:#ddd;color:#000}
   const cellToPx = (c) => c * BOX
   const now = () => performance.now()
 
+  const hideAllOverlays = () => {
+    UI.start.style.display = "none"
+    UI.pauseMenu.style.display = "none"
+    UI.over.style.display = "none"
+  }
+
+  const goToMenu = () => {
+    State.mode = "start"
+    hideAllOverlays()
+    UI.start.style.display = "flex"
+    UI.pause.textContent = "⏸"
+  }
+
   const spawnFood = () => {
     let f
     do {
@@ -342,6 +374,8 @@ body.light .btn{background:#ddd;color:#000}
     UI.record.textContent = record
     UI.finalRecord.textContent = record
     UI.finalScore.textContent = State.score
+
+    hideAllOverlays()
     UI.over.style.display = "flex"
   }
 
@@ -386,10 +420,19 @@ body.light .btn{background:#ddd;color:#000}
     State.dir = { x, y }
   }
 
-  const togglePause = () => {
+  const openPauseMenu = () => {
     if (State.mode === "dying" || State.mode === "start" || State.mode === "gameover") return
-    State.mode = (State.mode === "paused") ? "playing" : "paused"
-    UI.pause.textContent = (State.mode === "paused") ? "▶" : "⏸"
+    State.mode = "paused"
+    hideAllOverlays()
+    UI.pauseMenu.style.display = "flex"
+    UI.pause.textContent = "▶"
+  }
+
+  const resumeGame = () => {
+    if (State.mode !== "paused") return
+    State.mode = "playing"
+    hideAllOverlays()
+    UI.pause.textContent = "⏸"
   }
 
   // Game tick
@@ -418,7 +461,6 @@ body.light .btn{background:#ddd;color:#000}
 
       beep(880)
       vibrate(20)
-
       spawnFood()
     } else {
       State.snake.pop()
@@ -578,6 +620,7 @@ body.light .btn{background:#ddd;color:#000}
     if (State.mode === "dying") {
       drawDeath(t)
     } else {
+      // При паузе рисуем поле как есть (без обновления tick)
       drawFood()
       drawPop(t)
       drawSnake(t)
@@ -613,8 +656,11 @@ body.light .btn{background:#ddd;color:#000}
     if (k === "ArrowDown" || k === "s" || k === "S") setDir(0, 1)
     if (k === "ArrowLeft" || k === "a" || k === "A") setDir(-1, 0)
     if (k === "ArrowRight" || k === "d" || k === "D") setDir(1, 0)
-    if (k === " " || k === "Enter") {
-      if (State.mode === "playing" || State.mode === "paused") togglePause()
+
+    // Пауза: Esc / Space / Enter открывают меню паузы
+    if (k === "Escape" || k === " " || k === "Enter") {
+      if (State.mode === "playing") openPauseMenu()
+      else if (State.mode === "paused") resumeGame()
     }
   })
 
@@ -630,7 +676,6 @@ body.light .btn{background:#ddd;color:#000}
   })
 
   // UI actions
-  UI.pause.onpointerdown = () => togglePause()
   UI.theme.onpointerdown = () => document.body.classList.toggle("light")
 
   UI.sound.onpointerdown = async () => {
@@ -641,22 +686,36 @@ body.light .btn{background:#ddd;color:#000}
     beep(520, 0.08)
   }
 
+  // Pause button now opens pause menu (continue or main menu)
+  UI.pause.onpointerdown = () => {
+    if (State.mode === "playing") openPauseMenu()
+    else if (State.mode === "paused") resumeGame()
+  }
+
+  UI.resume.onpointerdown = () => resumeGame()
+  UI.toMenu.onpointerdown = () => goToMenu()
+
   UI.invite.onpointerdown = () => shareGame()
+
+  // !!! Поставь свой сайт сюда:
+  const SITE_URL = "https://example.com"
+  UI.site.onpointerdown = () => window.open(SITE_URL, "_blank")
 
   UI.play.onpointerdown = async () => {
     await initAudio()
     beep(440, 0.14)
-    UI.start.style.display = "none"
-    State.mode = "playing"
+    hideAllOverlays()
     startGame()
   }
 
   UI.restart.onpointerdown = async () => {
     await initAudio()
     beep(440, 0.14)
-    UI.over.style.display = "none"
+    hideAllOverlays()
     startGame()
   }
+
+  UI.menuFromOver.onpointerdown = () => goToMenu()
 
   // Start loops
   requestAnimationFrame(render)
