@@ -1,7 +1,19 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+  <!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=106208328', 'ym');
 
+    ym(106208328, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/106208328" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
@@ -17,6 +29,10 @@
   --text:#fff;
   --accent:#ff6b9a;
   --grid:#1a1a1a;
+
+  /* Controls */
+  --btn-face:#3a3a3a;
+  --btn-shadow:#1a1a1a;
 }
 body.light{
   --bg:#f3f3f3;
@@ -24,6 +40,9 @@ body.light{
   --canvas:#e6e6e6;
   --text:#111;
   --grid:#d0d0d0;
+
+  --btn-face:#d7d7d7;
+  --btn-shadow:#b5b5b5;
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -70,26 +89,75 @@ canvas{
 }
 
 .controls{
+  /* ✅ ниже + дальше друг от друга */
+  margin-top: 50px;                 /* было без margin */
   display:grid;
-  grid-template-columns:repeat(3,70px);
-  grid-template-rows:repeat(2,70px);
-  gap:10px;
+  grid-template-columns:repeat(3,72px);
+  grid-template-rows:repeat(2,72px);
+  gap: 18px;                        /* было 10px */
+  position:relative;               /* для подложки */
 }
+
+/* Подложка под крестовину (ретро-пульт) */
+.controls::before{
+  content:"";
+  position:absolute;
+  width: 210px;
+  height: 210px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255,255,255,0.04);
+  border-radius: 28px;
+  box-shadow:
+    inset -3px -3px 0 rgba(0,0,0,0.35),
+    inset 3px 3px 0 rgba(255,255,255,0.06),
+    0 10px 30px rgba(0,0,0,0.25);
+  z-index:-1;
+}
+body.light .controls::before{
+  background: rgba(0,0,0,0.04);
+  box-shadow:
+    inset -3px -3px 0 rgba(0,0,0,0.18),
+    inset 3px 3px 0 rgba(255,255,255,0.35),
+    0 10px 30px rgba(0,0,0,0.08);
+}
+
 .btn{
-  background:#222;
-  border-radius:14px;
+  /* ✅ GameBoy-ish кнопки */
+  background: var(--btn-face);
+  border-radius: 10px;
   display:flex;
   justify-content:center;
   align-items:center;
-  font-size:28px;
+  font-size: 26px;
+  color: #eee;
+  user-select:none;
+
+  box-shadow:
+    inset -2px -2px 0 rgba(0,0,0,0.45),
+    inset 2px 2px 0 rgba(255,255,255,0.10),
+    0 7px 0 var(--btn-shadow);
+
+  transition: transform .05s, box-shadow .05s, filter .05s;
 }
-body.light .btn{background:#ddd;color:#000}
-.btn:active{background:var(--accent)}
+body.light .btn{color:#222}
+
+.btn:active{
+  transform: translateY(4px);
+  box-shadow:
+    inset -2px -2px 0 rgba(0,0,0,0.55),
+    inset 2px 2px 0 rgba(255,255,255,0.07),
+    0 3px 0 var(--btn-shadow);
+  filter: brightness(1.03);
+}
+
 .up{grid-column:2}
 .left{grid-column:1}
 .down{grid-column:2}
 .right{grid-column:3}
 
+/* Экраны */
 .overlay{
   position:fixed;
   inset:0;
@@ -608,7 +676,6 @@ body.light .btn{background:#ddd;color:#000}
     if (State.mode === "dying") {
       drawDeath(t)
     } else {
-      // При паузе рисуем поле как есть (без обновления tick)
       drawFood()
       drawPop(t)
       drawSnake(t)
@@ -645,7 +712,7 @@ body.light .btn{background:#ddd;color:#000}
     if (k === "ArrowLeft" || k === "a" || k === "A") setDir(-1, 0)
     if (k === "ArrowRight" || k === "d" || k === "D") setDir(1, 0)
 
-    // Пауза: Esc / Space / Enter открывают меню паузы
+    // Пауза: Esc / Space / Enter
     if (k === "Escape" || k === " " || k === "Enter") {
       if (State.mode === "playing") openPauseMenu()
       else if (State.mode === "paused") resumeGame()
@@ -674,7 +741,7 @@ body.light .btn{background:#ddd;color:#000}
     beep(520, 0.08)
   }
 
-  // Pause button now opens pause menu (continue or main menu)
+  // Pause button opens pause menu (continue or main menu)
   UI.pause.onpointerdown = () => {
     if (State.mode === "playing") openPauseMenu()
     else if (State.mode === "paused") resumeGame()
@@ -685,7 +752,7 @@ body.light .btn{background:#ddd;color:#000}
 
   UI.invite.onpointerdown = () => shareGame()
 
-  // !!! Поставь свой сайт сюда:
+  // ✅ Поставь свой сайт сюда
   const SITE_URL = "https://malorisa.ru"
   UI.site.onpointerdown = () => window.open(SITE_URL, "_blank")
 
@@ -713,4 +780,3 @@ body.light .btn{background:#ddd;color:#000}
 
 </body>
 </html>
-
