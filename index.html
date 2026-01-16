@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+  <!-- Yandex.Metrika counter -->
+  <script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=106208328', 'ym');
+
+    ym(106208328, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
+  </script>
+  <noscript><div><img src="https://mc.yandex.ru/watch/106208328" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+  <!-- /Yandex.Metrika counter -->
+
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 <title>МалоРиса — Змейка</title>
@@ -9,31 +23,50 @@
 
 <style>
 :root{
-  --bg0:#0b0b10;
+  --bg0:#07070c;
   --bg1:#10101a;
-  --panel: rgba(18,18,26,0.72);
+
+  --panel: rgba(18,18,26,0.70);
+  --panel-border: rgba(255,255,255,0.10);
+
   --canvas:#07070c;
   --text:#f5f5ff;
   --muted: rgba(245,245,255,0.72);
+
   --accent:#ff6b9a;
-  --grid: rgba(255,255,255,0.05);
-  --btn-face: rgba(255,255,255,0.08);
-  --btn-shadow: rgba(0,0,0,0.55);
+  --accent2:#8be9ff;
+
+  --grid: rgba(255,255,255,0.06);
+
+  --btn-face: rgba(255,255,255,0.10);
+  --btn-face2: rgba(255,255,255,0.06);
+  --btn-shadow: rgba(0,0,0,0.60);
+
   --shadow-lg: 0 18px 60px rgba(0,0,0,0.55);
   --shadow-md: 0 12px 30px rgba(0,0,0,0.35);
-  --shadow-in: inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -2px 0 rgba(0,0,0,0.25);
-}
+  --shadow-in: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 0 rgba(0,0,0,0.28);
 
+  --radius-xl: 22px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+}
 body.light{
   --bg0:#f6f6fb;
   --bg1:#ececf5;
-  --panel: rgba(255,255,255,0.78);
+
+  --panel: rgba(255,255,255,0.80);
+  --panel-border: rgba(0,0,0,0.08);
+
   --canvas:#f1f1f8;
   --text:#11111a;
   --muted: rgba(17,17,26,0.68);
-  --grid: rgba(0,0,0,0.06);
+
+  --grid: rgba(0,0,0,0.07);
+
   --btn-face: rgba(0,0,0,0.06);
+  --btn-face2: rgba(0,0,0,0.04);
   --btn-shadow: rgba(0,0,0,0.18);
+
   --shadow-lg: 0 18px 60px rgba(0,0,0,0.14);
   --shadow-md: 0 12px 30px rgba(0,0,0,0.10);
   --shadow-in: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 0 rgba(0,0,0,0.08);
@@ -43,9 +76,10 @@ body.light{
 html, body { height: 100%; }
 
 body{
-  background: radial-gradient(1200px 700px at 30% 10%, rgba(255,107,154,0.16), transparent 60%),
-              radial-gradient(900px 500px at 80% 20%, rgba(139,233,255,0.12), transparent 55%),
-              linear-gradient(180deg, var(--bg0), var(--bg1));
+  background:
+    radial-gradient(1200px 700px at 20% 10%, rgba(255,107,154,0.18), transparent 60%),
+    radial-gradient(900px 500px at 80% 20%, rgba(139,233,255,0.12), transparent 55%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
   color:var(--text);
   font-family:system-ui,sans-serif;
   display:flex;
@@ -56,14 +90,26 @@ body{
   overflow:hidden;
 }
 
+body::before{
+  content:"";
+  position:fixed;
+  inset:-20px;
+  pointer-events:none;
+  opacity:0.08;
+  mix-blend-mode: overlay;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.75'/%3E%3C/svg%3E");
+}
+
 header{
   width:min(980px, 100%);
   padding:12px 14px;
-  margin-top: 8px;
+  margin-top: 10px;
   border-radius: 16px;
   background: var(--panel);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.10);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--panel-border);
   box-shadow: var(--shadow-md);
   display:flex;
   justify-content:space-between;
@@ -97,13 +143,17 @@ header{
   transition: transform .08s, filter .08s;
 }
 .btn-ui:active{ transform: translateY(2px); filter: brightness(1.05); }
-body.light .btn-ui{ background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.08); }
+body.light .btn-ui{
+  background: rgba(0,0,0,0.05);
+  border-color: rgba(0,0,0,0.08);
+}
 
 #game{
-  background: radial-gradient(900px 600px at 50% 15%, rgba(255,255,255,0.03), transparent 55%),
-              linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)),
-              var(--canvas);
-  border-radius: 18px;
+  background:
+    radial-gradient(900px 600px at 50% 15%, rgba(255,255,255,0.03), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)),
+    var(--canvas);
+  border-radius: var(--radius-lg);
   margin: 12px 0 6px 0;
   image-rendering: pixelated;
   box-shadow: var(--shadow-lg);
@@ -113,6 +163,7 @@ body.light .btn-ui{ background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.08)
   aspect-ratio: 1 / 1;
 }
 
+/* Controls */
 .controls{
   margin-top: 24px;
   display:grid;
@@ -126,25 +177,35 @@ body.light .btn-ui{ background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.08)
   border: 1px solid rgba(255,255,255,0.08);
   box-shadow: var(--shadow-md);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .btn{
-  background: var(--btn-face);
-  border-radius: 14px;
+  background:
+    radial-gradient(120px 80px at 30% 25%, rgba(255,255,255,0.18), transparent 60%),
+    linear-gradient(180deg, var(--btn-face), var(--btn-face2));
+  border-radius: 16px;
   display:flex;
   justify-content:center;
   align-items:center;
   font-size: 26px;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255,255,255,0.92);
   user-select:none;
-  box-shadow: var(--shadow-in), 0 10px 0 var(--btn-shadow);
+  box-shadow:
+    var(--shadow-in),
+    0 12px 0 var(--btn-shadow),
+    0 18px 30px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.10);
   transition: transform .07s, box-shadow .07s, filter .07s;
 }
 body.light .btn{ color: rgba(0,0,0,0.78); }
 
 .btn:active{
-  transform: translateY(5px);
-  box-shadow: var(--shadow-in), 0 5px 0 var(--btn-shadow);
+  transform: translateY(6px);
+  box-shadow:
+    var(--shadow-in),
+    0 6px 0 var(--btn-shadow),
+    0 10px 22px rgba(0,0,0,0.20);
   filter: brightness(1.05);
 }
 
@@ -153,6 +214,7 @@ body.light .btn{ color: rgba(0,0,0,0.78); }
 .down{grid-column:2}
 .right{grid-column:3}
 
+/* Overlays */
 .overlay{
   position:fixed;
   inset:0;
@@ -163,27 +225,29 @@ body.light .btn{ color: rgba(0,0,0,0.78); }
   z-index:10;
   padding: 22px;
 
-  background: radial-gradient(1200px 700px at 20% 10%, rgba(255,107,154,0.16), transparent 60%),
-              radial-gradient(900px 500px at 80% 20%, rgba(139,233,255,0.12), transparent 55%),
-              rgba(0,0,0,0.25);
-  backdrop-filter: blur(14px);
+  background:
+    radial-gradient(1200px 700px at 20% 10%, rgba(255,107,154,0.16), transparent 60%),
+    radial-gradient(900px 500px at 80% 20%, rgba(139,233,255,0.12), transparent 55%),
+    rgba(0,0,0,0.25);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 
-  opacity:0;
+  opacity: 0;
   transform: scale(1.03);
   pointer-events:none;
   transition: opacity .18s ease, transform .18s ease;
 }
 .overlay.show{
-  opacity:1;
+  opacity: 1;
   transform: scale(1);
   pointer-events:auto;
 }
 
 .card{
-  width: min(420px, 92vw);
-  border-radius: 18px;
+  width: min(440px, 92vw);
+  border-radius: var(--radius-xl);
   background: var(--panel);
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid var(--panel-border);
   box-shadow: var(--shadow-lg);
   padding: 18px;
 }
@@ -194,12 +258,18 @@ body.light .btn{ color: rgba(0,0,0,0.78); }
   color:var(--accent);
   margin-bottom:14px;
   text-shadow: 0 0 26px rgba(255,107,154,0.35);
+  animation: float 2.5s ease-in-out infinite;
+}
+@keyframes float{
+  0%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
+  100%{transform:translateY(0)}
 }
 
 .pixel-btn{
   font-family:'Press Start 2P', monospace;
   padding:16px 18px;
-  border-radius:14px;
+  border-radius: var(--radius-lg);
   background: linear-gradient(180deg, rgba(255,107,154,1), rgba(255,107,154,0.86));
   color:#0b0b10;
   margin-top:12px;
@@ -219,13 +289,18 @@ body.light .btn{ color: rgba(0,0,0,0.78); }
   box-shadow: none;
 }
 
-.small{ font-size:12px; margin-top:10px; color: var(--muted); }
+.small{
+  font-size:12px;
+  margin-top:10px;
+  color: var(--muted);
+}
 #toast{ opacity:0; transition:opacity .2s; }
 
+/* Nick */
 .nick-wrap{
   width:100%;
   background: rgba(255,255,255,0.05);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   padding: 14px;
   box-shadow: var(--shadow-in);
   border: 1px solid rgba(255,255,255,0.10);
@@ -265,10 +340,9 @@ body.light .nick-input{
   color: var(--accent);
   user-select:none;
   white-space:nowrap;
-  text-align:center;
-  min-width: 92px;
+  transition: transform .08s, filter .08s;
 }
-.nick-save:active{ transform: translateY(2px); }
+.nick-save:active{ transform: translateY(2px); filter: brightness(1.03); }
 
 .nick-hint{ margin-top:10px; font-size:12px; color: var(--muted); }
 .nick-status{ margin-top:8px; font-size: 12px; min-height: 16px; }
@@ -276,81 +350,45 @@ body.light .nick-input{
 .nick-status.err{ color: #ff7b9e; }
 
 .lb-wrap{
-  margin-top: 12px;
+  margin-top: 14px;
   padding: 12px;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.10);
   box-shadow: var(--shadow-in);
-  width: 100%;
-}
-.lb-title{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-.lb{
-  font-size: 12px;
-  line-height: 1.65;
-  color: rgba(255,255,255,0.90);
-}
-body.light .lb{ color: rgba(0,0,0,0.82); }
-
-.badge{
-  display:inline-block;
-  padding: 4px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(255,255,255,0.06);
-  color: var(--muted);
 }
 </style>
 </head>
 
 <body>
 
-<!-- MAIN MENU (ПОКАЗЫВАЕТСЯ СРАЗУ) -->
+<!-- MAIN MENU -->
 <div class="overlay show" id="start" style="display:flex">
   <div class="card">
     <div class="logo">МАЛОРИСА</div>
 
     <div class="nick-wrap">
-      <div class="nick-label">НИК</div>
+      <div class="nick-label">НИК (УНИКАЛЬНЫЙ)</div>
       <div class="nick-row">
         <input id="nick" class="nick-input" maxlength="24" placeholder="например: malorisa_fox" />
         <div class="nick-save" id="saveNick">OK</div>
       </div>
-
-      <div class="nick-hint">Ник 1–24 символа. Нажми OK чтобы сохранить.</div>
+      <div class="nick-hint">1–24 символа. Ники уникальны для всех игроков.</div>
       <div class="nick-status" id="nickStatus"></div>
-    </div>
-
-    <div class="lb-wrap">
-      <div class="lb-title">
-        <span>🏆 Топ-5</span>
-        <span class="badge" id="serverStatus">—</span>
-      </div>
-      <div class="lb" id="menuLeaderboard">Загрузка…</div>
     </div>
 
     <div class="pixel-btn" id="play">ИГРАТЬ</div>
     <div class="pixel-btn secondary" id="invite">ПРИГЛАСИТЬ ДРУГА</div>
+    <div class="pixel-btn secondary" id="site">ПЕРЕЙТИ НА САЙТ</div>
 
     <div class="small" id="toast"></div>
-    <div class="small" style="margin-top:8px;">
-      Пауза: Esc / Space / Enter. Управление: стрелки/WASD/свайп.
-    </div>
   </div>
 </div>
 
 <!-- PAUSE MENU -->
 <div class="overlay" id="pauseMenu" style="display:none">
   <div class="card">
-    <div class="logo">ПАУЗА</div>
+    <div class="logo" style="animation:none">ПАУЗА</div>
     <div class="pixel-btn" id="resume">ПРОДОЛЖИТЬ</div>
     <div class="pixel-btn secondary" id="toMenu">В ГЛАВНОЕ МЕНЮ</div>
   </div>
@@ -359,8 +397,7 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
 <!-- GAME OVER -->
 <div class="overlay" id="over" style="display:none">
   <div class="card">
-    <div class="logo">GAME OVER</div>
-
+    <div class="logo" style="animation:none">GAME OVER</div>
     <div class="small" style="opacity:1">
       Счет: <b><span id="finalScore">0</span></b> |
       Рекорд: <b><span id="finalRecord">0</span></b>
@@ -369,18 +406,15 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
     <div class="pixel-btn" id="restart">СНОВА</div>
     <div class="pixel-btn secondary" id="menuFromOver">В ГЛАВНОЕ МЕНЮ</div>
 
-    <div class="lb-wrap" style="margin-top:14px;">
-      <div class="lb-title">
-        <span>🏆 Топ-10</span>
-        <span class="badge" id="serverStatusOver">—</span>
-      </div>
-      <div class="lb" id="leaderboard">Загрузка…</div>
+    <div class="lb-wrap small" style="margin-top:14px;opacity:1;max-width:360px;text-align:left">
+      <div style="margin-bottom:8px;">🏆 Топ игроков:</div>
+      <div id="leaderboard" style="line-height:1.6"></div>
     </div>
   </div>
 </div>
 
 <header>
-  <span class="pill"><b id="score">0</b></span>
+  <span class="pill">Счет: <b id="score">0</b></span>
   <span class="title">МАЛОРИСА</span>
   <span class="pill" style="gap:8px;">
     <span>Рекорд: <b id="record">0</b></span>
@@ -397,44 +431,22 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
   <div class="btn left">◀</div><div class="btn down">▼</div><div class="btn right">▶</div>
 </div>
 
-<!-- Supabase JS (UMD) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-<script>
 (() => {
   const $ = (id) => document.getElementById(id);
 
-  // ====== SUPABASE CONFIG ======
+  // Supabase
   const SUPABASE_URL = "https://xymyjykcispbuqexfgop.supabase.co";
-  const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY_HERE"; // <-- вставь сюда anon key
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_vAQ-xCwv77sxrskSyrHPmg_DzoqHyi6";
+  const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-  // Таблица лидерборда:
-  // leaderboard: { name (text, pk), best_score (int), updated_at (timestamptz default now()) }
-  const LEADERBOARD_TABLE = "leaderboard";
+  // DOM
+  const canvas = $("game");
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
 
-  // ====== SAFE SUPABASE INIT (не ломаем игру если ключа нет) ======
-  let supabase = null;
-  let supabaseReady = false;
-
-  const initSupabase = async () => {
-    try {
-      if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("PASTE_")) {
-        supabaseReady = false;
-        return;
-      }
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      // быстрый ping
-      const { error } = await supabase.from(LEADERBOARD_TABLE).select("name").limit(1);
-      if (error) throw error;
-      supabaseReady = true;
-    } catch (e) {
-      console.warn("Supabase init failed, fallback to local:", e);
-      supabaseReady = false;
-      supabase = null;
-    }
-  };
-
-  // ===== UI =====
   const UI = {
     start: $("start"),
     pauseMenu: $("pauseMenu"),
@@ -442,6 +454,7 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
 
     play: $("play"),
     invite: $("invite"),
+    site: $("site"),
     toast: $("toast"),
 
     resume: $("resume"),
@@ -460,15 +473,26 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
     sound: $("sound"),
 
     leaderboard: $("leaderboard"),
-    menuLeaderboard: $("menuLeaderboard"),
 
     nick: $("nick"),
     saveNick: $("saveNick"),
     nickStatus: $("nickStatus"),
-
-    serverStatus: $("serverStatus"),
-    serverStatusOver: $("serverStatusOver"),
   };
+
+  // Constants
+  const BOX = 20;
+  const COLS = canvas.width / BOX;
+  const ROWS = canvas.height / BOX;
+  const TICK_MS = 150;
+  const FOODS = ["🍣","🍟","🍔","🥡","🍲","🍚","🌮","🥐","🍙","🍤","🍘","🍕"];
+
+  // Persistent settings
+  let record = Number(localStorage.getItem("malorisa_record") || 0);
+  let soundOn = localStorage.getItem("malorisa_sound") !== "0";
+
+  UI.record.textContent = record;
+  UI.finalRecord.textContent = record;
+  UI.sound.textContent = soundOn ? "🔊" : "🔇";
 
   const showToast = (text) => {
     UI.toast.textContent = text;
@@ -477,216 +501,200 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
     showToast._t = setTimeout(() => UI.toast.style.opacity = "0", 1400);
   };
 
-  const setNickStatus = (text, kind="") => {
+  const setNickStatus = (text, kind = "") => {
     UI.nickStatus.textContent = text || "";
     UI.nickStatus.className = "nick-status " + (kind || "");
   };
 
+  const normalizeNick = (s) => (s || "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .slice(0, 24);
+
+  const getSavedPlayer = () => {
+    const player_id = localStorage.getItem("malorisa_player_id") || "";
+    const name = localStorage.getItem("malorisa_name") || "";
+    return { player_id, name };
+  };
+
+  const setSavedPlayer = ({ player_id, name }) => {
+    localStorage.setItem("malorisa_player_id", player_id);
+    localStorage.setItem("malorisa_name", name);
+  };
+
+  const ensureNickRegisteredUI = () => {
+    const { player_id, name } = getSavedPlayer();
+    if (name) UI.nick.value = name;
+    if (player_id && name) setNickStatus(`✅ Ник закреплён: ${name}`, "ok");
+    else setNickStatus("Введи ник и нажми OK", "");
+  };
+
+  // ✅ FIXED Overlay helpers (не исчезает Game Over)
   const showOverlay = (el) => {
+    if (el._hideTimer) { clearTimeout(el._hideTimer); el._hideTimer = null; }
     el.style.display = "flex";
     requestAnimationFrame(() => el.classList.add("show"));
   };
   const hideOverlay = (el) => {
     el.classList.remove("show");
-    setTimeout(() => { el.style.display = "none"; }, 180);
+    if (el._hideTimer) clearTimeout(el._hideTimer);
+    el._hideTimer = setTimeout(() => {
+      el.style.display = "none";
+      el._hideTimer = null;
+    }, 190);
   };
-  const hideAllOverlays = () => {
-    hideOverlay(UI.start);
-    hideOverlay(UI.pauseMenu);
-    hideOverlay(UI.over);
-  };
-
-  // ===== Storage =====
-  const LS_PLAYER = "malorisa_player_name";
-  const LS_RECORD = "malorisa_record";
-  const LS_SOUND = "malorisa_sound";
-  const LS_LOCAL_SCORES = "malorisa_scores_local_v1";
-
-  let record = Number(localStorage.getItem(LS_RECORD) || 0);
-  let soundOn = localStorage.getItem(LS_SOUND) !== "0";
-  UI.record.textContent = record;
-  UI.finalRecord.textContent = record;
-  UI.sound.textContent = soundOn ? "🔊" : "🔇";
-
-  const normalizeNick = (s) => (s || "")
-    .trim()
-    .replace(/\s+/g, "_")
-    .replace(/[^\p{L}\p{N}_\-\.]/gu, "")
-    .slice(0, 24);
-
-  const getName = () => localStorage.getItem(LS_PLAYER) || "";
-  const setName = (v) => localStorage.setItem(LS_PLAYER, v);
-
-  const loadLocalScores = () => {
-    try { return JSON.parse(localStorage.getItem(LS_LOCAL_SCORES) || "[]") || []; }
-    catch { return []; }
-  };
-  const saveLocalScores = (arr) => localStorage.setItem(LS_LOCAL_SCORES, JSON.stringify(arr));
-
-  const addLocalScore = (name, score) => {
-    const arr = loadLocalScores();
-    arr.push({ name, score, ts: Date.now() });
-    arr.sort((a,b) => (b.score - a.score) || (a.ts - b.ts));
-    saveLocalScores(arr.slice(0, 200));
-  };
-
-  const esc = (s) => String(s).replace(/[<>&"]/g, (c) => ({ "<":"&lt;", ">":"&gt;", "&":"&amp;", '"':"&quot;" }[c]));
-
-  const renderLeaderboard = (rows, el) => {
-    if (!rows?.length) { el.textContent = "Пока пусто — будь первым 🙂"; return; }
-    el.innerHTML = rows.map((r,i) => {
-      const medal = i===0 ? "🥇 " : i===1 ? "🥈 " : i===2 ? "🥉 " : "";
-      return `${medal}${i+1}. ${esc(r.name)} — <b>${r.best_score}</b>`;
-    }).join("<br>");
-  };
-
-  // ===== Supabase leaderboard ops =====
-  const fetchTop = async (limit) => {
-    if (!supabaseReady) return null;
-    const { data, error } = await supabase
-      .from(LEADERBOARD_TABLE)
-      .select("name,best_score,updated_at")
-      .order("best_score", { ascending: false })
-      .order("updated_at", { ascending: true })
-      .limit(limit);
-    if (error) throw error;
-    return data || [];
-  };
-
-  const upsertBest = async (name, score) => {
-    if (!supabaseReady) return false;
-
-    // Читаем текущий лучший
-    const { data: cur, error: e1 } = await supabase
-      .from(LEADERBOARD_TABLE)
-      .select("best_score")
-      .eq("name", name)
-      .maybeSingle();
-
-    if (e1) throw e1;
-
-    const curBest = cur?.best_score ?? null;
-    if (curBest != null && curBest >= score) return true;
-
-    const payload = { name, best_score: score, updated_at: new Date().toISOString() };
-    const { error: e2 } = await supabase.from(LEADERBOARD_TABLE).upsert(payload, { onConflict: "name" });
-    if (e2) throw e2;
-    return true;
-  };
-
-  // ===== Fallback local top (best per name) =====
-  const getLocalTop = (limit) => {
-    const arr = loadLocalScores();
-    const bestMap = new Map();
-    for (const x of arr) {
-      const cur = bestMap.get(x.name);
-      if (!cur || x.score > cur.best_score || (x.score === cur.best_score && x.ts < cur.ts)) {
-        bestMap.set(x.name, { name: x.name, best_score: x.score, ts: x.ts });
-      }
-    }
-    const bestArr = [...bestMap.values()];
-    bestArr.sort((a,b) => (b.best_score - a.best_score) || (a.ts - b.ts));
-    return bestArr.slice(0, limit).map(({name,best_score}) => ({ name, best_score }));
-  };
-
-  const loadMenuLeaderboard = async () => {
-    try {
-      if (supabaseReady) {
-        UI.serverStatus.textContent = "supabase";
-        const rows = await fetchTop(5);
-        renderLeaderboard(rows, UI.menuLeaderboard);
-      } else {
-        UI.serverStatus.textContent = "local";
-        renderLeaderboard(getLocalTop(5), UI.menuLeaderboard);
-      }
-    } catch (e) {
-      console.warn(e);
-      UI.serverStatus.textContent = "local";
-      renderLeaderboard(getLocalTop(5), UI.menuLeaderboard);
+  const hideAllOverlays = (exceptEl = null) => {
+    for (const el of [UI.start, UI.pauseMenu, UI.over]) {
+      if (!el || el === exceptEl) continue;
+      hideOverlay(el);
     }
   };
 
-  const loadOverLeaderboard = async () => {
-    try {
-      if (supabaseReady) {
-        UI.serverStatusOver.textContent = "supabase";
-        const rows = await fetchTop(10);
-        renderLeaderboard(rows, UI.leaderboard);
-      } else {
-        UI.serverStatusOver.textContent = "local";
-        renderLeaderboard(getLocalTop(10), UI.leaderboard);
-      }
-    } catch (e) {
-      console.warn(e);
-      UI.serverStatusOver.textContent = "local";
-      renderLeaderboard(getLocalTop(10), UI.leaderboard);
-    }
-  };
-
-  // ===== Nick save =====
-  const saveNick = async () => {
-    const name = normalizeNick(UI.nick.value);
-    UI.nick.value = name;
+  // Register nick
+  const registerNick = async () => {
+    const raw = UI.nick.value;
+    const name = normalizeNick(raw);
 
     if (!name || name.length < 1 || name.length > 24) {
       setNickStatus("Ник должен быть 1–24 символа", "err");
       return false;
     }
 
-    setName(name);
-    setNickStatus(`✅ Ник сохранён: ${name}`, "ok");
-    showToast("Ник сохранён ✅");
-    return true;
+    setNickStatus("⏳ Проверяем ник...", "");
+
+    try {
+      const { data, error } = await supabase
+        .from("malorisa_players")
+        .insert({ name })
+        .select("id,name")
+        .single();
+
+      if (error) {
+        const msg = (error?.message || "").toLowerCase();
+        if (msg.includes("duplicate") || msg.includes("unique") || msg.includes("23505")) {
+          setNickStatus("❌ Ник уже занят. Выбери другой.", "err");
+          return false;
+        }
+        console.warn("registerNick error:", error);
+        setNickStatus("❌ Ошибка регистрации ника", "err");
+        return false;
+      }
+
+      setSavedPlayer({ player_id: data.id, name: data.name });
+      setNickStatus(`✅ Ник закреплён: ${data.name}`, "ok");
+      showToast("Ник сохранён ✅");
+      return true;
+    } catch (e) {
+      console.warn("registerNick exception:", e);
+      setNickStatus("❌ Ошибка сети/сервера", "err");
+      return false;
+    }
   };
 
-  UI.saveNick.onpointerdown = async () => {
-    await saveNick();
+  // Leaderboard
+  const renderLeaderboard = (rows) => {
+    if (!UI.leaderboard) return;
+    if (!rows?.length) {
+      UI.leaderboard.textContent = "Пока пусто — будь первым 🙂";
+      return;
+    }
+    UI.leaderboard.innerHTML = rows.map((r, i) => {
+      const safeName = String(r.name).replace(/[<>&"]/g, (c) => ({
+        "<":"&lt;", ">":"&gt;", "&":"&amp;", '"':"&quot;"
+      }[c]));
+      const medal = i === 0 ? "🥇 " : (i === 1 ? "🥈 " : (i === 2 ? "🥉 " : ""));
+      return `${medal}${i+1}. ${safeName} — <b>${r.best_score}</b>`;
+    }).join("<br>");
   };
-  UI.nick.addEventListener("keydown", async (e) => {
-    if (e.key === "Enter") await saveNick();
-  });
 
-  // ===== Audio (optional) =====
+  const loadLeaderboard = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("malorisa_leaderboard")
+        .select("name, best_score, first_best_time")
+        .order("best_score", { ascending: false })
+        .order("first_best_time", { ascending: true })
+        .limit(10);
+
+      if (error) throw error;
+      renderLeaderboard(data);
+    } catch (e) {
+      console.warn("Leaderboard load error:", e);
+      if (UI.leaderboard) UI.leaderboard.textContent = "Не удалось загрузить топ 😕";
+    }
+  };
+
+  const submitScore = async (score) => {
+    const { player_id, name } = getSavedPlayer();
+    if (!player_id || !name) return;
+
+    try {
+      const { error } = await supabase
+        .from("malorisa_scores")
+        .insert({ player_id, name, score });
+
+      if (error) throw error;
+    } catch (e) {
+      console.warn("Score submit error:", e);
+    }
+  };
+
+  // Share
+  const shareGame = async () => {
+    const text = "Попробуй побить мой рекорд в змейке от МалоРиса";
+    const url = location.href;
+
+    if (navigator.share) {
+      try { await navigator.share({ title: "МалоРиса — Змейка", text, url }); return; } catch {}
+    }
+
+    const fallback = `${text}\n${url}`;
+    try { await navigator.clipboard.writeText(fallback); showToast("Ссылка скопирована ✅"); }
+    catch { window.prompt("Скопируй и отправь другу:", fallback); }
+  };
+
+  // Audio
   let audioCtx = null;
   const initAudio = async () => {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === "suspended") { try { await audioCtx.resume(); } catch {} }
   };
-  const sfx = (type) => {
+  const beep = (freq, dur = 0.1) => {
     if (!soundOn || !audioCtx) return;
-    const t0 = audioCtx.currentTime;
     const o = audioCtx.createOscillator();
     const g = audioCtx.createGain();
-    o.connect(g).connect(audioCtx.destination);
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.12, t0 + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.12);
     o.type = "square";
-    o.frequency.setValueAtTime(type==="eat" ? 880 : 520, t0);
-    o.start(t0);
-    o.stop(t0 + 0.14);
+    o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.085, audioCtx.currentTime);
+    o.connect(g).connect(audioCtx.destination);
+    o.start();
+    o.stop(audioCtx.currentTime + dur);
   };
+  const vibrate = (ms = 20) => { if (navigator.vibrate) navigator.vibrate(ms); };
 
-  // ===== Game =====
-  const canvas = $("game");
-  const ctx = canvas.getContext("2d");
-  ctx.imageSmoothingEnabled = false;
-
-  const BOX = 20;
-  const COLS = canvas.width / BOX;
-  const ROWS = canvas.height / BOX;
-  const TICK_MS = 150;
-  const FOODS = ["sushi","fries","burger","pizza"];
-
+  // State
   const State = {
     mode: "start",
     snake: [],
     dir: { x: 1, y: 0 },
-    food: { x: 5, y: 5, type: "sushi" },
-    score: 0
+    food: { x: 5, y: 5, icon: "🍣" },
+    score: 0,
+    pop: null,
+    chomp: null,
+    death: null,
+    foodWobbleT: 0,
   };
 
+  // Constants helpers
   const cellToPx = (c) => c * BOX;
+  const now = () => performance.now();
+
+  const goToMenu = () => {
+    State.mode = "start";
+    hideAllOverlays(UI.start);
+    showOverlay(UI.start);
+    UI.pause.textContent = "⏸";
+  };
 
   const spawnFood = () => {
     let f;
@@ -694,10 +702,11 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
       f = {
         x: Math.floor(Math.random() * COLS),
         y: Math.floor(Math.random() * ROWS),
-        type: FOODS[Math.floor(Math.random() * FOODS.length)]
+        icon: ["🍣","🍟","🍔","🥡","🍲","🍚","🌮","🥐","🍙","🍤","🍘","🍕"][Math.floor(Math.random() * 4)],
       };
     } while (State.snake.some(p => p.x === f.x && p.y === f.y));
     State.food = f;
+    State.foodWobbleT = now();
   };
 
   const startGame = () => {
@@ -705,6 +714,11 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
     State.dir = { x: 1, y: 0 };
     State.score = 0;
     State.mode = "playing";
+
+    State.pop = null;
+    State.chomp = null;
+    State.death = null;
+
     UI.score.textContent = "0";
     UI.pause.textContent = "⏸";
     spawnFood();
@@ -715,51 +729,80 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
 
     if (State.score > record) {
       record = State.score;
-      localStorage.setItem(LS_RECORD, String(record));
+      localStorage.setItem("malorisa_record", String(record));
     }
+
     UI.record.textContent = record;
     UI.finalRecord.textContent = record;
     UI.finalScore.textContent = State.score;
 
-    const name = getName();
-    if (name) {
-      // local history (на всякий случай)
-      addLocalScore(name, State.score);
+    hideAllOverlays(UI.over);
+    showOverlay(UI.over);
 
-      // supabase best upsert
-      try { await upsertBest(name, State.score); }
-      catch (e) { console.warn("Supabase upsert failed:", e); }
+    await submitScore(State.score);
+    await loadLeaderboard();
+  };
+
+  const beginDeathAnimation = () => {
+    const particles = [];
+    const parts = State.snake;
+
+    for (const seg of parts) {
+      const baseX = cellToPx(seg.x) + 1;
+      const baseY = cellToPx(seg.y) + 1;
+      const w = BOX - 2;
+
+      const offsets = [
+        { ox: 2, oy: 2 },
+        { ox: w - 6, oy: 2 },
+        { ox: 2, oy: w - 6 },
+        { ox: w - 6, oy: w - 6 },
+      ];
+
+      for (const o of offsets) {
+        const px = baseX + o.ox;
+        const py = baseY + o.oy;
+        particles.push({
+          x: px,
+          y: py,
+          vx: (Math.random() - 0.5) * 0.9,
+          vy: 0.35 + Math.random() * 1.25,
+          size: 4,
+          life: 1,
+        });
+      }
     }
 
-    hideAllOverlays();
-    showOverlay(UI.over);
-    await loadOverLeaderboard();
-    await loadMenuLeaderboard();
+    State.mode = "dying";
+    State.death = { t: now(), dur: 460, particles };
+    beep(140, 0.18);
+    vibrate(30);
   };
 
   const setDir = (x, y) => {
-    if (State.mode !== "playing") return;
+    if (State.mode === "dying" || State.mode === "start" || State.mode === "gameover") return;
     if (State.dir.x === -x && State.dir.y === -y) return;
     State.dir = { x, y };
   };
 
   const openPauseMenu = () => {
-    if (State.mode !== "playing") return;
+    if (State.mode === "dying" || State.mode === "start" || State.mode === "gameover") return;
     State.mode = "paused";
-    hideAllOverlays();
+    hideAllOverlays(UI.pauseMenu);
     showOverlay(UI.pauseMenu);
     UI.pause.textContent = "▶";
-    sfx("click");
+    beep(520, 0.08);
   };
 
   const resumeGame = () => {
     if (State.mode !== "paused") return;
     State.mode = "playing";
-    hideAllOverlays();
+    hideAllOverlays(); // no overlay should remain
     UI.pause.textContent = "⏸";
-    sfx("click");
+    beep(520, 0.08);
   };
 
+  // Game tick
   const tick = () => {
     if (State.mode !== "playing") return;
 
@@ -769,7 +812,7 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
     const newHead = { x: nx, y: ny };
 
     if (State.snake.some(p => p.x === newHead.x && p.y === newHead.y)) {
-      endGame();
+      beginDeathAnimation();
       return;
     }
 
@@ -778,60 +821,238 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
     if (newHead.x === State.food.x && newHead.y === State.food.y) {
       State.score++;
       UI.score.textContent = String(State.score);
-      sfx("eat");
+
+      const t = now();
+      State.pop = { x: State.food.x, y: State.food.y, t, dur: 240 };
+      State.chomp = { t, dur: 190 };
+
+      beep(880, 0.09);
+      vibrate(18);
       spawnFood();
     } else {
       State.snake.pop();
     }
   };
 
+  // Rendering helpers
   const drawGrid = () => {
     const grid = getComputedStyle(document.body).getPropertyValue("--grid").trim();
     ctx.strokeStyle = grid;
     ctx.lineWidth = 1;
+
     for (let i = 0; i <= COLS; i++) {
       const x = i * BOX + 0.5;
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
     }
     for (let i = 0; i <= ROWS; i++) {
       const y = i * BOX + 0.5;
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
     }
   };
 
-  const drawFood = () => {
-    const x = cellToPx(State.food.x);
-    const y = cellToPx(State.food.y);
-    ctx.fillStyle = "rgba(255,107,154,0.95)";
-    ctx.fillRect(x+4, y+4, BOX-8, BOX-8);
+  const drawFood = (t) => {
+    const wob = Math.sin((t - State.foodWobbleT) / 180) * 1.2;
+    const pulse = 1 + Math.sin((t - State.foodWobbleT) / 240) * 0.05;
+
+    const x = cellToPx(State.food.x) + 2 + wob;
+    const y = cellToPx(State.food.y) + 18 - wob;
+
+    ctx.save();
+    ctx.translate(x + 8, y - 10);
+    ctx.scale(pulse, pulse);
+    ctx.translate(-(x + 8), -(y - 10));
+
+    ctx.font = "18px serif";
+    ctx.textBaseline = "alphabetic";
+    ctx.shadowColor = "rgba(0,0,0,0.35)";
+    ctx.shadowBlur = 6;
+    ctx.fillText(State.food.icon, x, y);
+    ctx.restore();
   };
 
-  const drawSnake = () => {
-    for (let i=0;i<State.snake.length;i++){
+  const drawPop = (t) => {
+    if (!State.pop) return;
+    const { x, y, t: t0, dur } = State.pop;
+    const p = (t - t0) / dur;
+    if (p >= 1) { State.pop = null; return; }
+
+    const cx = cellToPx(x) + BOX / 2;
+    const cy = cellToPx(y) + BOX / 2;
+
+    const accent = getComputedStyle(document.body).getPropertyValue("--accent").trim();
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 1 - p;
+
+    const r = 4 + p * 12;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = accent;
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      const rr = 6 + p * 14;
+      const sx = Math.round(cx + Math.cos(a) * rr);
+      const sy = Math.round(cy + Math.sin(a) * rr);
+      ctx.fillRect(sx, sy, 2, 2);
+    }
+
+    ctx.globalAlpha = 1;
+  };
+
+  const drawHeadFace = (cx, cy, scale = 1, chomp = 0) => {
+    const dx = State.dir.x, dy = State.dir.y;
+    const lookX = dx * 4, lookY = dy * 4;
+
+    const eyeY = -4 * scale;
+    const eyeX = 4 * scale;
+
+    ctx.fillStyle = "rgba(255,255,255,0.95)";
+    ctx.beginPath();
+    ctx.arc(cx - eyeX + lookX, cy + eyeY + lookY, 2.2 * scale, 0, Math.PI * 2);
+    ctx.arc(cx + eyeX + lookX, cy + eyeY + lookY, 2.2 * scale, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(0,0,0,0.82)";
+    ctx.beginPath();
+    ctx.arc(cx - eyeX + lookX, cy + eyeY + lookY, 1.1 * scale, 0, Math.PI * 2);
+    ctx.arc(cx + eyeX + lookX, cy + eyeY + lookY, 1.1 * scale, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Mouth (opens on chomp)
+    const mx = cx + dx * 5;
+    const my = cy + dy * 5 + 4;
+    const w = 8 * scale;
+    const open = Math.max(1, Math.round(chomp * 5));
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.fillRect(Math.round(mx - w/2), Math.round(my), Math.round(w), open);
+
+    if (chomp > 0.15) {
+      ctx.fillStyle = "rgba(255,255,255,0.70)";
+      ctx.fillRect(Math.round(mx - 2), Math.round(my), 2, 1);
+      ctx.fillRect(Math.round(mx + 1), Math.round(my), 2, 1);
+    }
+  };
+
+  const drawSnake = (t) => {
+    const head = State.snake[0];
+    if (!head) return;
+
+    let headScale = 1;
+    let chomp = 0;
+
+    if (State.chomp) {
+      const p = (t - State.chomp.t) / State.chomp.dur;
+      if (p >= 1) {
+        State.chomp = null;
+      } else {
+        const bump = Math.sin(p * Math.PI);
+        headScale = 1 + bump * 0.12;
+        chomp = bump;
+      }
+    }
+
+    const headColor = "rgba(255,209,225,0.96)";
+    const bodyColor = "rgba(255,107,154,0.92)";
+
+    for (let i = 0; i < State.snake.length; i++) {
       const s = State.snake[i];
-      const x = cellToPx(s.x)+1;
-      const y = cellToPx(s.y)+1;
-      ctx.fillStyle = i===0 ? "rgba(255,209,225,0.95)" : "rgba(255,107,154,0.92)";
-      ctx.fillRect(x, y, BOX-2, BOX-2);
+      const x = cellToPx(s.x) + 1;
+      const y = cellToPx(s.y) + 1;
+      const w = BOX - 2;
+      const h = BOX - 2;
+
+      if (i === 0) {
+        const cx = x + w / 2;
+        const cy = y + h / 2;
+        const sw = w * headScale;
+        const sh = h * headScale;
+
+        const rx = Math.round(cx - sw / 2);
+        const ry = Math.round(cy - sh / 2);
+        const rw = Math.round(sw);
+        const rh = Math.round(sh);
+
+        ctx.fillStyle = headColor;
+        ctx.fillRect(rx, ry, rw, rh);
+
+        ctx.fillStyle = "rgba(255,255,255,0.14)";
+        ctx.fillRect(rx + 2, ry + 2, Math.max(0, rw - 6), 2);
+
+        drawHeadFace(cx, cy, headScale, chomp);
+      } else {
+        ctx.fillStyle = bodyColor;
+        ctx.fillRect(x, y, w, h);
+
+        ctx.fillStyle = "rgba(255,255,255,0.10)";
+        ctx.fillRect(x + 2, y + 2, Math.max(0, w - 6), 1);
+      }
     }
   };
 
-  const render = () => {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+  const drawDeath = (t) => {
+    if (!State.death) return;
+    const { t: t0, dur, particles } = State.death;
+    const p = (t - t0) / dur;
+
+    const accent = getComputedStyle(document.body).getPropertyValue("--accent").trim();
+    ctx.fillStyle = accent;
+
+    for (const pt of particles) {
+      pt.x += pt.vx;
+      pt.y += pt.vy;
+      pt.vy += 0.06;
+      pt.life = 1 - p;
+      if (pt.life > 0.15 || Math.random() > 0.4) {
+        ctx.globalAlpha = Math.max(0, pt.life);
+        ctx.fillRect(Math.round(pt.x), Math.round(pt.y), pt.size, pt.size);
+      }
+    }
+    ctx.globalAlpha = 1;
+
+    if (p >= 1) {
+      State.death = null;
+      endGame();
+    }
+  };
+
+  const render = (t) => {
+    const canvasBg = getComputedStyle(document.body).getPropertyValue("--canvas").trim();
+    ctx.fillStyle = canvasBg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     drawGrid();
-    if (State.mode !== "start") drawFood();
-    drawSnake();
+
+    if (State.mode === "dying") {
+      drawDeath(t);
+    } else {
+      if (State.mode !== "start") drawFood(t);
+      drawPop(t);
+      drawSnake(t);
+    }
+
     requestAnimationFrame(render);
   };
 
-  let lastTick = performance.now();
+  // Tick loop
+  let lastTick = now();
   const loop = () => {
-    const t = performance.now();
-    if (t - lastTick >= TICK_MS) { lastTick = t; tick(); }
+    const t = now();
+    if (t - lastTick >= TICK_MS) {
+      lastTick = t;
+      tick();
+    }
     requestAnimationFrame(loop);
   };
 
-  // Controls buttons
+  // Controls: buttons
   const bindButton = (selector, x, y) => {
     const el = document.querySelector(selector);
     el.onpointerdown = () => setDir(x, y);
@@ -841,7 +1062,7 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
   bindButton(".left", -1, 0);
   bindButton(".right", 1, 0);
 
-  // Keyboard + pause
+  // Controls: keyboard
   document.addEventListener("keydown", (e) => {
     const k = e.key;
     if (k === "ArrowUp" || k === "w" || k === "W") setDir(0, -1);
@@ -855,7 +1076,7 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
     }
   });
 
-  // Swipe
+  // Controls: swipe
   let sx = 0, sy = 0;
   canvas.addEventListener("pointerdown", (e) => { sx = e.clientX; sy = e.clientY; });
   canvas.addEventListener("pointerup", (e) => {
@@ -867,14 +1088,17 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
   });
 
   // UI actions
-  UI.theme.onpointerdown = () => { document.body.classList.toggle("light"); sfx("click"); };
+  UI.theme.onpointerdown = () => {
+    document.body.classList.toggle("light");
+    beep(520, 0.06);
+  };
 
   UI.sound.onpointerdown = async () => {
     await initAudio();
     soundOn = !soundOn;
-    localStorage.setItem(LS_SOUND, soundOn ? "1" : "0");
+    localStorage.setItem("malorisa_sound", soundOn ? "1" : "0");
     UI.sound.textContent = soundOn ? "🔊" : "🔇";
-    sfx("click");
+    beep(520, 0.08);
   };
 
   UI.pause.onpointerdown = () => {
@@ -883,78 +1107,61 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
   };
 
   UI.resume.onpointerdown = () => resumeGame();
-  UI.toMenu.onpointerdown = () => {
-    State.mode = "start";
-    hideAllOverlays();
-    showOverlay(UI.start);
-    UI.pause.textContent = "⏸";
-    loadMenuLeaderboard();
-  };
+  UI.toMenu.onpointerdown = () => goToMenu();
 
-  UI.menuFromOver.onpointerdown = () => {
-    State.mode = "start";
-    hideAllOverlays();
-    showOverlay(UI.start);
-    UI.pause.textContent = "⏸";
-    loadMenuLeaderboard();
-  };
+  UI.invite.onpointerdown = () => shareGame();
+  const SITE_URL = "https://malorisa.ru";
+  UI.site.onpointerdown = () => window.open(SITE_URL, "_blank");
 
-  const shareGame = async () => {
-    const text = "Попробуй побить мой рекорд в змейке от МалоРиса";
-    const url = location.href;
-    if (navigator.share) {
-      try { await navigator.share({ title: "МалоРиса — Змейка", text, url }); return; } catch {}
-    }
-    const fallback = `${text}\n${url}`;
-    try { await navigator.clipboard.writeText(fallback); showToast("Ссылка скопирована ✅"); }
-    catch { window.prompt("Скопируй и отправь другу:", fallback); }
+  UI.saveNick.onpointerdown = async () => { await registerNick(); };
+  UI.nick.addEventListener("keydown", async (e) => { if (e.key === "Enter") await registerNick(); });
+
+  const canPlay = () => {
+    const { player_id, name } = getSavedPlayer();
+    return Boolean(player_id && name);
   };
-  UI.invite.onpointerdown = () => { sfx("click"); shareGame(); };
 
   UI.play.onpointerdown = async () => {
-    const name = getName();
-    if (!name) { setNickStatus("Сначала введи ник и нажми OK", "err"); showToast("Сначала введи ник ✅"); return; }
+    if (!canPlay()) {
+      setNickStatus("Сначала закрепи уникальный ник (нажми OK)", "err");
+      return;
+    }
     await initAudio();
-    sfx("click");
-    hideAllOverlays();
+    beep(440, 0.14);
+    hideAllOverlays(); // hide menu
     startGame();
   };
 
   UI.restart.onpointerdown = async () => {
+    if (!canPlay()) {
+      goToMenu();
+      setNickStatus("Сначала закрепи уникальный ник (нажми OK)", "err");
+      return;
+    }
     await initAudio();
-    sfx("click");
-    hideAllOverlays();
+    beep(440, 0.14);
+    hideAllOverlays(); // hide game over
     startGame();
   };
 
-  // ===== BOOT =====
-  const boot = async () => {
-    try {
-      // показать меню сразу (уже show)
-      const saved = getName();
-      if (saved) { UI.nick.value = saved; setNickStatus(`✅ Ник: ${saved}`, "ok"); }
-      else setNickStatus("Введи ник и нажми OK", "");
+  UI.menuFromOver.onpointerdown = () => goToMenu();
 
-      await initSupabase();
-      UI.serverStatus.textContent = supabaseReady ? "supabase" : "local";
-      UI.serverStatusOver.textContent = UI.serverStatus.textContent;
+  // Init UI
+  ensureNickRegisteredUI();
+  loadLeaderboard();
 
-      await loadMenuLeaderboard();
+  // Buttons actions for overlays
+  UI.toMenu.onpointerdown = () => goToMenu();
+  UI.resume.onpointerdown = () => resumeGame();
 
-      requestAnimationFrame(render);
-      requestAnimationFrame(loop);
-    } catch (e) {
-      console.error("Boot error:", e);
-      UI.start.style.display = "flex";
-      UI.start.classList.add("show");
-      setNickStatus("Ошибка JS. Открой консоль (F12) и пришли ошибку.", "err");
-    }
-  };
+  // Save nick
+  UI.saveNick.onpointerdown = async () => { await registerNick(); };
 
-  boot();
+  // Start loops
+  requestAnimationFrame(render);
+  requestAnimationFrame(loop);
 })();
 </script>
 
 </body>
 </html>
-
