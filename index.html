@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+  
+
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 <title>МалоРиса — Змейка</title>
@@ -9,90 +11,44 @@
 
 <style>
 :root{
-  --bg0:#0b0b10;
-  --bg1:#10101a;
-  --panel: rgba(18,18,26,0.72);
-  --panel2: rgba(255,255,255,0.06);
-  --canvas:#07070c;
-  --text:#f5f5ff;
-  --muted: rgba(245,245,255,0.72);
+  --bg:#111;
+  --panel:#1c1c1c;
+  --canvas:#000;
+  --text:#fff;
   --accent:#ff6b9a;
-  --accent2:#8be9ff;
-  --grid: rgba(255,255,255,0.05);
+  --grid:#1a1a1a;
 
-  --btn-face: rgba(255,255,255,0.08);
-  --btn-shadow: rgba(0,0,0,0.55);
-
-  --shadow-lg: 0 18px 60px rgba(0,0,0,0.55);
-  --shadow-md: 0 12px 30px rgba(0,0,0,0.35);
-  --shadow-in: inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -2px 0 rgba(0,0,0,0.25);
+  /* Controls */
+  --btn-face:#3a3a3a;
+  --btn-shadow:#1a1a1a;
 }
-
 body.light{
-  --bg0:#f6f6fb;
-  --bg1:#ececf5;
-  --panel: rgba(255,255,255,0.78);
-  --panel2: rgba(0,0,0,0.04);
-  --canvas:#f1f1f8;
-  --text:#11111a;
-  --muted: rgba(17,17,26,0.68);
-  --grid: rgba(0,0,0,0.06);
+  --bg:#f3f3f3;
+  --panel:#fff;
+  --canvas:#e6e6e6;
+  --text:#111;
+  --grid:#d0d0d0;
 
-  --btn-face: rgba(0,0,0,0.06);
-  --btn-shadow: rgba(0,0,0,0.18);
-
-  --shadow-lg: 0 18px 60px rgba(0,0,0,0.14);
-  --shadow-md: 0 12px 30px rgba(0,0,0,0.10);
-  --shadow-in: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 0 rgba(0,0,0,0.08);
+  --btn-face:#d7d7d7;
+  --btn-shadow:#b5b5b5;
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
-html, body { height: 100%; }
-
 body{
-  background: radial-gradient(1200px 700px at 30% 10%, rgba(255,107,154,0.16), transparent 60%),
-              radial-gradient(900px 500px at 80% 20%, rgba(139,233,255,0.12), transparent 55%),
-              linear-gradient(180deg, var(--bg0), var(--bg1));
+  background:var(--bg);
   color:var(--text);
   font-family:system-ui,sans-serif;
   display:flex;
   flex-direction:column;
   align-items:center;
-  min-height:100vh;
+  height:100vh;
   touch-action:none;
-  overflow:hidden;
 }
 
-/* Film grain (SVG turbulence) */
-body::before{
-  content:"";
-  position:fixed;
-  inset:-20px;
-  pointer-events:none;
-  opacity:0.08;
-  mix-blend-mode: overlay;
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.75'/%3E%3C/svg%3E");
-  transform: translateZ(0);
-}
-
-/* Reduce motion */
-@media (prefers-reduced-motion: reduce){
-  * { animation: none !important; transition: none !important; }
-  body::before { display:none; }
-}
-
-/* Header */
 header{
-  width:min(980px, 100%);
-  padding:12px 14px;
-  margin-top: 8px;
-  border-radius: 16px;
-  background: var(--panel);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.10);
-  box-shadow: var(--shadow-md);
+  width:100%;
+  padding:12px;
+  background:var(--panel);
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -101,91 +57,87 @@ header{
 .title{
   font-family:'Press Start 2P', monospace;
   font-size:14px;
-  letter-spacing: 0.5px;
   color:var(--accent);
-  text-shadow: 0 0 18px rgba(255,107,154,0.35);
 }
-
-.pill{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  color: var(--muted);
-  font-size: 14px;
-}
-.pill b{ color: var(--text); }
 
 .btn-ui{
-  padding:7px 10px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: var(--shadow-in);
+  padding:6px 10px;
+  border-radius:10px;
+  background:#2a2a2a;
+  color:#fff;
   user-select:none;
-  transform: translateZ(0);
-  transition: transform .08s, filter .08s, background .2s;
 }
-.btn-ui:active{ transform: translateY(2px); filter: brightness(1.05); }
-body.light .btn-ui{ background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.08); }
+body.light .btn-ui{background:#ddd;color:#000}
 
-/* Canvas */
-#game{
-  background: radial-gradient(900px 600px at 50% 15%, rgba(255,255,255,0.03), transparent 55%),
-              linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)),
-              var(--canvas);
-  border-radius: 18px;
-  margin: 12px 0 6px 0;
-  image-rendering: pixelated;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid rgba(255,255,255,0.10);
-
-  /* Responsive scaling */
-  width: min(92vw, 440px);
-  height: auto;
-  aspect-ratio: 1 / 1;
+canvas{
+  background:var(--canvas);
+  border-radius:14px;
+  margin:10px 0;
+  image-rendering:pixelated;
 }
 
-/* Controls */
 .controls{
-  margin-top: 24px;
+  /* ✅ ниже + дальше друг от друга */
+  margin-top: 50px;                 /* было без margin */
   display:grid;
-  grid-template-columns:repeat(3,74px);
-  grid-template-rows:repeat(2,74px);
-  gap: 18px;
-  position:relative;
-  padding: 14px;
+  grid-template-columns:repeat(3,72px);
+  grid-template-rows:repeat(2,72px);
+  gap: 18px;                        /* было 10px */
+  position:relative;               /* для подложки */
+}
+
+/* Подложка под крестовину (ретро-пульт) */
+.controls::before{
+  content:"";
+  position:absolute;
+  width: 210px;
+  height: 210px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255,255,255,0.04);
   border-radius: 28px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: var(--shadow-md);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    inset -3px -3px 0 rgba(0,0,0,0.35),
+    inset 3px 3px 0 rgba(255,255,255,0.06),
+    0 10px 30px rgba(0,0,0,0.25);
+  z-index:-1;
+}
+body.light .controls::before{
+  background: rgba(0,0,0,0.04);
+  box-shadow:
+    inset -3px -3px 0 rgba(0,0,0,0.18),
+    inset 3px 3px 0 rgba(255,255,255,0.35),
+    0 10px 30px rgba(0,0,0,0.08);
 }
 
 .btn{
+  /* ✅ GameBoy-ish кнопки */
   background: var(--btn-face);
-  border-radius: 14px;
+  border-radius: 10px;
   display:flex;
   justify-content:center;
   align-items:center;
   font-size: 26px;
-  color: rgba(255,255,255,0.9);
+  color: #eee;
   user-select:none;
 
   box-shadow:
-    var(--shadow-in),
-    0 10px 0 var(--btn-shadow);
+    inset -2px -2px 0 rgba(0,0,0,0.45),
+    inset 2px 2px 0 rgba(255,255,255,0.10),
+    0 7px 0 var(--btn-shadow);
 
-  transition: transform .07s, box-shadow .07s, filter .07s;
+  transition: transform .05s, box-shadow .05s, filter .05s;
 }
-body.light .btn{ color: rgba(0,0,0,0.78); }
+body.light .btn{color:#222}
 
 .btn:active{
-  transform: translateY(5px);
+  transform: translateY(4px);
   box-shadow:
-    var(--shadow-in),
-    0 5px 0 var(--btn-shadow);
-  filter: brightness(1.05);
+    inset -2px -2px 0 rgba(0,0,0,0.55),
+    inset 2px 2px 0 rgba(255,255,255,0.07),
+    0 3px 0 var(--btn-shadow);
+  filter: brightness(1.03);
 }
 
 .up{grid-column:2}
@@ -193,193 +145,54 @@ body.light .btn{ color: rgba(0,0,0,0.78); }
 .down{grid-column:2}
 .right{grid-column:3}
 
-/* Overlays */
+/* Экраны */
 .overlay{
   position:fixed;
   inset:0;
+  background:var(--bg);
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
   z-index:10;
-  padding: 22px;
-
-  background: radial-gradient(1200px 700px at 20% 10%, rgba(255,107,154,0.16), transparent 60%),
-              radial-gradient(900px 500px at 80% 20%, rgba(139,233,255,0.12), transparent 55%),
-              rgba(0,0,0,0.25);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-
-  opacity:0;
-  transform: scale(1.03);
-  pointer-events:none;
-  transition: opacity .18s ease, transform .18s ease;
-}
-.overlay.show{
-  opacity:1;
-  transform: scale(1);
-  pointer-events:auto;
-}
-
-.card{
-  width: min(420px, 92vw);
-  border-radius: 18px;
-  background: var(--panel);
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: var(--shadow-lg);
-  padding: 18px;
 }
 
 .logo{
   font-family:'Press Start 2P', monospace;
   font-size:24px;
   color:var(--accent);
-  margin-bottom:14px;
-  text-shadow: 0 0 26px rgba(255,107,154,0.35);
-  animation: float 2.5s ease-in-out infinite;
+  margin-bottom:26px;
+  animation:float 2.5s ease-in-out infinite;
 }
 @keyframes float{
   0%{transform:translateY(0)}
-  50%{transform:translateY(-10px)}
+  50%{transform:translateY(-12px)}
   100%{transform:translateY(0)}
 }
 
 .pixel-btn{
   font-family:'Press Start 2P', monospace;
-  padding:16px 18px;
+  padding:16px 28px;
   border-radius:14px;
-  background: linear-gradient(180deg, rgba(255,107,154,1), rgba(255,107,154,0.86));
-  color:#0b0b10;
+  background:var(--accent);
+  color:#000;
   margin-top:12px;
   user-select:none;
-  text-align:center;
-  width: 100%;
-  box-shadow: 0 14px 34px rgba(255,107,154,0.20);
-  border: 1px solid rgba(255,255,255,0.15);
-  transition: transform .08s, filter .08s;
 }
-.pixel-btn:active{ transform: translateY(2px); filter: brightness(1.03); }
 
 .pixel-btn.secondary{
-  background: rgba(255,255,255,0.06);
+  background:transparent;
   color:var(--accent);
-  border: 1px solid rgba(255,107,154,0.35);
-  box-shadow: none;
+  border:2px solid var(--accent);
 }
 
 .small{
   font-size:12px;
   margin-top:10px;
-  color: var(--muted);
 }
 #toast{
   opacity:0;
   transition:opacity .2s;
-}
-
-/* Nick block */
-.nick-wrap{
-  width:100%;
-  background: rgba(255,255,255,0.05);
-  border-radius: 16px;
-  padding: 14px;
-  box-shadow: var(--shadow-in);
-  border: 1px solid rgba(255,255,255,0.10);
-  margin-top: 10px;
-}
-
-.nick-label{
-  font-family:'Press Start 2P', monospace;
-  font-size: 10px;
-  opacity:.92;
-  margin-bottom: 10px;
-  color: rgba(255,255,255,0.88);
-}
-body.light .nick-label{ color: rgba(0,0,0,0.72); }
-
-.nick-row{ display:flex; gap:10px; }
-.nick-input{
-  flex:1;
-  padding: 12px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(0,0,0,0.12);
-  color: var(--text);
-  font-size: 14px;
-  outline: none;
-}
-body.light .nick-input{
-  background: rgba(255,255,255,0.65);
-  border-color: rgba(0,0,0,0.10);
-}
-
-.nick-save{
-  font-family:'Press Start 2P', monospace;
-  padding: 12px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,107,154,0.55);
-  background: rgba(255,107,154,0.08);
-  color: var(--accent);
-  user-select:none;
-  white-space:nowrap;
-  transition: transform .08s, filter .08s;
-  text-align:center;
-  width: 100%;
-}
-.nick-save:active{ transform: translateY(2px); filter: brightness(1.03); }
-
-.nick-hint{ margin-top:10px; font-size:12px; color: var(--muted); }
-.nick-status{ margin-top:8px; font-size: 12px; min-height: 16px; }
-.nick-status.ok{ color: #6dffb0; }
-.nick-status.err{ color: #ff7b9e; }
-
-/* How to play */
-.howto{
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.10);
-  box-shadow: var(--shadow-in);
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
-}
-.howto b{ color: var(--text); }
-
-/* Leaderboards blocks */
-.lb-wrap{
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.10);
-  box-shadow: var(--shadow-in);
-  width: 100%;
-}
-.lb-title{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  font-size: 12px;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-.lb{
-  font-size: 12px;
-  line-height: 1.65;
-  color: rgba(255,255,255,0.90);
-}
-body.light .lb{ color: rgba(0,0,0,0.82); }
-
-.badge{
-  display:inline-block;
-  padding: 4px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(255,255,255,0.06);
-  color: var(--muted);
 }
 </style>
 </head>
@@ -388,95 +201,41 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
 
 <!-- MAIN MENU -->
 <div class="overlay" id="start">
-  <div class="card">
-    <div class="logo">МАЛОРИСА</div>
+  <div class="logo">МАЛОРИСА</div>
+  <div class="pixel-btn" id="play">ИГРАТЬ</div>
 
-    <div class="nick-wrap">
-      <div class="nick-label">НИК (УНИКАЛЬНЫЙ)</div>
-      <div class="nick-row">
-        <input id="nick" class="nick-input" maxlength="24" placeholder="например: malorisa_fox" />
-        <div class="nick-save" id="saveNick" style="max-width:92px;">OK</div>
-      </div>
+  <div class="pixel-btn secondary" id="invite">ПРИГЛАСИТЬ ДРУГА</div>
+  <div class="pixel-btn secondary" id="site">ПЕРЕЙТИ НА САЙТ</div>
 
-      <div class="nick-row" style="margin-top:10px;">
-        <div class="nick-save" id="changeNick" style="border-color:rgba(255,255,255,0.22);color:var(--text);opacity:.92;background:rgba(255,255,255,0.04);">
-          СМЕНИТЬ НИК
-        </div>
-      </div>
-
-      <div class="nick-hint">1–24 символа. Ники уникальны для всех игроков.</div>
-      <div class="nick-status" id="nickStatus"></div>
-    </div>
-
-    <div class="howto">
-      <b>Как играть:</b> свайп по полю или стрелки/WASD. <br/>
-      <b>Пауза:</b> Esc / Space / Enter. <br/>
-      <b>Фишка:</b> поле замкнуто — выходишь с одной стороны, входишь с другой.
-    </div>
-
-    <div class="lb-wrap">
-      <div class="lb-title">
-        <span>🏆 Топ-5</span>
-        <span class="badge" id="myMenuBadge">—</span>
-      </div>
-      <div class="lb" id="menuLeaderboard">Загрузка…</div>
-    </div>
-
-    <div class="pixel-btn" id="play">ИГРАТЬ</div>
-    <div class="pixel-btn secondary" id="invite">ПРИГЛАСИТЬ ДРУГА</div>
-    <div class="pixel-btn secondary" id="site">ПЕРЕЙТИ НА САЙТ</div>
-
-    <div class="small" id="toast"></div>
-  </div>
+  <div class="small" id="toast"></div>
 </div>
 
 <!-- PAUSE MENU -->
 <div class="overlay" id="pauseMenu" style="display:none">
-  <div class="card">
-    <div class="logo" style="animation:none">ПАУЗА</div>
-    <div class="pixel-btn" id="resume">ПРОДОЛЖИТЬ</div>
-    <div class="pixel-btn secondary" id="toMenu">В ГЛАВНОЕ МЕНЮ</div>
-    <div class="small">Подсказка: Esc / Space / Enter</div>
-  </div>
+  <div class="logo" style="animation:none">ПАУЗА</div>
+  <div class="pixel-btn" id="resume">ПРОДОЛЖИТЬ</div>
+  <div class="pixel-btn secondary" id="toMenu">В ГЛАВНОЕ МЕНЮ</div>
 </div>
 
 <!-- GAME OVER -->
 <div class="overlay" id="over" style="display:none">
-  <div class="card">
-    <div class="logo" style="animation:none">GAME OVER</div>
-
-    <div class="small" style="opacity:1">
-      Счет: <b><span id="finalScore">0</span></b> |
-      Рекорд (локально): <b><span id="finalRecord">0</span></b>
-    </div>
-
-    <div class="small" style="margin-top:10px;opacity:1">
-      Твой лучший: <b><span id="myBest">—</span></b> |
-      Твоё место: <b><span id="myRank">—</span></b> |
-      Титул: <b><span id="myTitle">—</span></b>
-    </div>
-
-    <div class="pixel-btn" id="restart">СНОВА</div>
-    <div class="pixel-btn secondary" id="menuFromOver">В ГЛАВНОЕ МЕНЮ</div>
-
-    <div class="lb-wrap" style="margin-top:14px;">
-      <div class="lb-title">
-        <span>🏆 Топ-10 игроков</span>
-        <span class="badge" id="serverStatus">online</span>
-      </div>
-      <div class="lb" id="leaderboard">Загрузка…</div>
-    </div>
+  <div class="logo" style="animation:none">GAME OVER</div>
+  <div class="small" style="opacity:1">
+    Счет: <span id="finalScore">0</span> |
+    Рекорд: <span id="finalRecord">0</span>
   </div>
+  <div class="pixel-btn" id="restart">СНОВА</div>
+  <div class="pixel-btn secondary" id="menuFromOver">В ГЛАВНОЕ МЕНЮ</div>
 </div>
 
 <header>
-  <span class="pill"><b id="score">0</b></span>
+  <span id="score">0</span>
   <span class="title">МАЛОРИСА</span>
-  <span class="pill" style="gap:8px;">
-    <span>Рекорд: <b id="record">0</b></span>
-    <span class="btn-ui" id="sound" title="Звук">🔊</span>
-    <span class="btn-ui" id="pause" title="Пауза">⏸</span>
-    <span class="btn-ui" id="theme" title="Тема">☀︎ / 🌙</span>
+  <span style="display:flex;gap:6px;align-items:center">
+    <span id="record">0</span>
+    <span class="btn-ui" id="sound">🔊</span>
+    <span class="btn-ui" id="pause">⏸</span>
+    <span class="btn-ui" id="theme">☀︎ / 🌙</span>
   </span>
 </header>
 
@@ -487,23 +246,14 @@ body.light .lb{ color: rgba(0,0,0,0.82); }
   <div class="btn left">◀</div><div class="btn down">▼</div><div class="btn right">▶</div>
 </div>
 
-<script type="module">
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
+<script>
 (() => {
-  const $ = (id) => document.getElementById(id);
+  const $ = (id) => document.getElementById(id)
 
-  // ✅ Вставь Project URL из Supabase (Settings → API → Project URL)
-  const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";
-  // ✅ publishable/anon key (клиентский). НЕ ИСПОЛЬЗУЙ secret key в браузере.
-  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_vAQ-xCwv77sxrskSyrHPmg_DzoqHyi6";
-  const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-
-  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-
-  const canvas = $("game");
-  const ctx = canvas.getContext("2d");
-  ctx.imageSmoothingEnabled = false;
+  // DOM
+  const canvas = $("game")
+  const ctx = canvas.getContext("2d")
+  ctx.imageSmoothingEnabled = false
 
   const UI = {
     start: $("start"),
@@ -526,924 +276,494 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
     finalScore: $("finalScore"),
     finalRecord: $("finalRecord"),
 
-    myBest: $("myBest"),
-    myRank: $("myRank"),
-    myTitle: $("myTitle"),
-    serverStatus: $("serverStatus"),
-
     pause: $("pause"),
     theme: $("theme"),
     sound: $("sound"),
+  }
 
-    leaderboard: $("leaderboard"),
-    menuLeaderboard: $("menuLeaderboard"),
-    myMenuBadge: $("myMenuBadge"),
+  // Constants
+  const BOX = 20
+  const COLS = canvas.width / BOX
+  const ROWS = canvas.height / BOX
+  const TICK_MS = 150 // фиксированная скорость (без роста сложности)
+  const FOODS = ["🍣","🍟","🍔","🍕"]
 
-    nick: $("nick"),
-    saveNick: $("saveNick"),
-    changeNick: $("changeNick"),
-    nickStatus: $("nickStatus"),
-  };
+  // Persistent settings
+  let record = Number(localStorage.getItem("malorisa_record") || 0)
+  let soundOn = localStorage.getItem("malorisa_sound") !== "0"
 
-  const BOX = 20;
-  const COLS = canvas.width / BOX;
-  const ROWS = canvas.height / BOX;
-  const TICK_MS = 150;
+  UI.record.textContent = record
+  UI.finalRecord.textContent = record
+  UI.sound.textContent = soundOn ? "🔊" : "🔇"
 
-  const FOODS = ["sushi","fries","burger","pizza"];
-
-  let record = Number(localStorage.getItem("malorisa_record") || 0);
-  let soundOn = localStorage.getItem("malorisa_sound") !== "0";
-
-  UI.record.textContent = record;
-  UI.finalRecord.textContent = record;
-  UI.sound.textContent = soundOn ? "🔊" : "🔇";
-
+  // Toast
   const showToast = (text) => {
-    UI.toast.textContent = text;
-    UI.toast.style.opacity = "1";
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => UI.toast.style.opacity = "0", 1400);
-  };
+    UI.toast.textContent = text
+    UI.toast.style.opacity = "1"
+    clearTimeout(showToast._t)
+    showToast._t = setTimeout(() => UI.toast.style.opacity = "0", 1400)
+  }
 
-  const setNickStatus = (text, kind = "") => {
-    UI.nickStatus.textContent = text || "";
-    UI.nickStatus.className = "nick-status " + (kind || "");
-  };
+  // Share (Invite friend)
+  const shareGame = async () => {
+    const text = "Попробуй побить мой рекорд в змейке от МалоРиса"
+    const url = location.href
 
-  const showOverlay = (el) => {
-    el.style.display = "flex";
-    requestAnimationFrame(() => el.classList.add("show"));
-  };
-  const hideOverlay = (el) => {
-    el.classList.remove("show");
-    setTimeout(() => { el.style.display = "none"; }, reduceMotion ? 0 : 190);
-  };
-  const hideAllOverlays = () => {
-    hideOverlay(UI.start);
-    hideOverlay(UI.pauseMenu);
-    hideOverlay(UI.over);
-  };
-
-  // Player identity
-  const normalizeNick = (s) => (s || "")
-    .trim()
-    .replace(/\s+/g, "_")
-    .replace(/[^\p{L}\p{N}_\-\.]/gu, "")
-    .slice(0, 24);
-
-  const getSavedPlayer = () => {
-    const player_id = localStorage.getItem("malorisa_player_id") || "";
-    const name = localStorage.getItem("malorisa_name") || "";
-    return { player_id, name };
-  };
-
-  const setSavedPlayer = ({ player_id, name }) => {
-    localStorage.setItem("malorisa_player_id", player_id);
-    localStorage.setItem("malorisa_name", name);
-  };
-
-  const ensureNickRegisteredUI = () => {
-    const { player_id, name } = getSavedPlayer();
-    if (name) UI.nick.value = name;
-    if (player_id && name) {
-      setNickStatus(`✅ Ник закреплён: ${name}`, "ok");
-    } else {
-      setNickStatus("Введи ник и нажми OK", "");
-    }
-  };
-
-  const canPlay = () => {
-    const { player_id, name } = getSavedPlayer();
-    return Boolean(player_id && name);
-  };
-
-  // Register unique nickname
-  const registerNick = async () => {
-    const name = normalizeNick(UI.nick.value);
-    UI.nick.value = name;
-
-    if (!name || name.length < 1 || name.length > 24) {
-      setNickStatus("Ник должен быть 1–24 символа", "err");
-      return false;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "МалоРиса — Змейка", text, url })
+        return
+      } catch {}
     }
 
-    setNickStatus("⏳ Регистрируем ник…", "");
-
+    const fallback = `${text}\n${url}`
     try {
-      const { data, error } = await supabase
-        .from("malorisa_players")
-        .insert({ name })
-        .select("id,name")
-        .single();
-
-      if (error) {
-        const msg = (error?.message || "").toLowerCase();
-        if (msg.includes("duplicate") || msg.includes("unique") || msg.includes("23505")) {
-          setNickStatus("❌ Ник уже занят. Выбери другой.", "err");
-          return false;
-        }
-        console.warn("registerNick error:", error);
-        setNickStatus("❌ Ошибка регистрации", "err");
-        return false;
-      }
-
-      setSavedPlayer({ player_id: data.id, name: data.name });
-      setNickStatus(`✅ Ник закреплён: ${data.name}`, "ok");
-      showToast("Ник сохранён ✅");
-      await refreshMenuBadge();
-      return true;
-    } catch (e) {
-      console.warn("registerNick exception:", e);
-      setNickStatus("❌ Ошибка сети/сервера", "err");
-      return false;
+      await navigator.clipboard.writeText(fallback)
+      showToast("Ссылка скопирована ✅")
+    } catch {
+      window.prompt("Скопируй и отправь другу:", fallback)
     }
-  };
+  }
 
-  UI.changeNick.onpointerdown = async () => {
-    const ok = confirm(
-      "Сменить ник?\n\n" +
-      "Важно:\n" +
-      "• старый ник останется занятым (уникальность глобальная)\n" +
-      "• результаты будут привязаны к новому нику на этом устройстве\n"
-    );
-    if (!ok) return;
-
-    localStorage.removeItem("malorisa_player_id");
-    localStorage.removeItem("malorisa_name");
-    UI.nick.value = "";
-    setNickStatus("Введи новый ник и нажми OK", "");
-    showToast("Ник сброшен ✅");
-    await refreshMenuBadge();
-  };
-
-  UI.saveNick.onpointerdown = async () => { await registerNick(); };
-  UI.nick.addEventListener("keydown", async (e) => { if (e.key === "Enter") await registerNick(); });
-
-  // ===== Premium audio (SFX) =====
-  let audioCtx = null;
-
+  // Audio (safe start after user gesture)
+  let audioCtx = null
   const initAudio = async () => {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)()
     if (audioCtx.state === "suspended") {
-      try { await audioCtx.resume(); } catch {}
+      try { await audioCtx.resume() } catch {}
     }
-  };
+  }
+  const beep = (freq, dur = 0.1) => {
+    if (!soundOn || !audioCtx) return
+    const o = audioCtx.createOscillator()
+    const g = audioCtx.createGain()
+    o.type = "square"
+    o.frequency.setValueAtTime(freq, audioCtx.currentTime)
+    g.gain.setValueAtTime(0.08, audioCtx.currentTime)
+    o.connect(g).connect(audioCtx.destination)
+    o.start()
+    o.stop(audioCtx.currentTime + dur)
+  }
 
-  const sfx = (type) => {
-    if (!soundOn || !audioCtx) return;
-    const t0 = audioCtx.currentTime;
+  const vibrate = (ms = 20) => {
+    if (navigator.vibrate) navigator.vibrate(ms)
+  }
 
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    const f = audioCtx.createBiquadFilter();
-
-    f.type = "lowpass";
-    f.frequency.setValueAtTime(1400, t0);
-
-    o.connect(f).connect(g).connect(audioCtx.destination);
-
-    const soft = (type === "death") ? 0.16 : 0.10;
-
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(soft, t0 + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + (type === "death" ? 0.24 : 0.16));
-
-    if (type === "click") {
-      o.type = "square";
-      o.frequency.setValueAtTime(520, t0);
-      o.frequency.exponentialRampToValueAtTime(760, t0 + 0.06);
-      f.frequency.setValueAtTime(1800, t0);
-    } else if (type === "eat") {
-      o.type = "square";
-      o.frequency.setValueAtTime(880, t0);
-      o.frequency.exponentialRampToValueAtTime(660, t0 + 0.10);
-      f.frequency.setValueAtTime(2200, t0);
-    } else if (type === "death") {
-      o.type = "sawtooth";
-      o.frequency.setValueAtTime(220, t0);
-      o.frequency.exponentialRampToValueAtTime(90, t0 + 0.14);
-      f.frequency.setValueAtTime(900, t0);
-    }
-
-    o.start(t0);
-    o.stop(t0 + (type === "death" ? 0.26 : 0.20));
-  };
-
-  const vibrate = (ms = 18) => { if (navigator.vibrate) navigator.vibrate(ms); };
-
-  // ===== Game State =====
+  // State
   const State = {
     mode: "start", // start | playing | paused | dying | gameover
     snake: [],
     dir: { x: 1, y: 0 },
-    food: { x: 5, y: 5, type: "sushi" },
+    food: { x: 5, y: 5, icon: "🍣" },
     score: 0,
 
-    pop: null,
-    chomp: null,
-    death: null,
-    shake: null,
-    vignette: 0,
-  };
+    // Animations
+    pop: null,      // {x,y,t, dur}
+    chomp: null,    // {t, dur}
+    death: null,    // {t, dur, particles: [...]}
+  }
 
-  const cellToPx = (c) => c * BOX;
-  const now = () => performance.now();
+  // Helpers
+  const cellToPx = (c) => c * BOX
+  const now = () => performance.now()
+
+  const hideAllOverlays = () => {
+    UI.start.style.display = "none"
+    UI.pauseMenu.style.display = "none"
+    UI.over.style.display = "none"
+  }
+
+  const goToMenu = () => {
+    State.mode = "start"
+    hideAllOverlays()
+    UI.start.style.display = "flex"
+    UI.pause.textContent = "⏸"
+  }
 
   const spawnFood = () => {
-    let f;
+    let f
     do {
       f = {
         x: Math.floor(Math.random() * COLS),
         y: Math.floor(Math.random() * ROWS),
-        type: FOODS[Math.floor(Math.random() * FOODS.length)],
-      };
-    } while (State.snake.some(p => p.x === f.x && p.y === f.y));
-    State.food = f;
-  };
+        icon: FOODS[Math.floor(Math.random() * FOODS.length)],
+      }
+    } while (State.snake.some(p => p.x === f.x && p.y === f.y))
+    State.food = f
+  }
 
   const startGame = () => {
-    State.snake = [{ x: 10, y: 10 }];
-    State.dir = { x: 1, y: 0 };
-    State.score = 0;
-    State.mode = "playing";
+    State.snake = [{ x: 10, y: 10 }]
+    State.dir = { x: 1, y: 0 }
+    State.score = 0
+    State.mode = "playing"
 
-    State.pop = null;
-    State.chomp = null;
-    State.death = null;
-    State.shake = null;
-    State.vignette = 0;
+    State.pop = null
+    State.chomp = null
+    State.death = null
 
-    UI.score.textContent = "0";
-    UI.pause.textContent = "⏸";
-    spawnFood();
-  };
+    UI.score.textContent = "0"
+    UI.pause.textContent = "⏸"
+    spawnFood()
+  }
 
-  const getTitleForBest = (best) => {
-    if (best == null) return "—";
-    if (best >= 60) return "ЛЕГЕНДА";
-    if (best >= 40) return "ШЕФ-ПОВАР";
-    if (best >= 25) return "САМУРАЙ";
-    if (best >= 12) return "НОВИЧОК+";
-    if (best >= 5) return "НОВИЧОК";
-    return "СТАРТ";
-  };
-
-  const submitScore = async (score) => {
-    const { player_id, name } = getSavedPlayer();
-    if (!player_id || !name) return;
-
-    try {
-      const { error } = await supabase
-        .from("malorisa_scores")
-        .insert({ player_id, name, score });
-
-      if (error) throw error;
-      UI.serverStatus.textContent = "online";
-    } catch (e) {
-      console.warn("Score submit error:", e);
-      UI.serverStatus.textContent = "offline";
-    }
-  };
-
-  const esc = (s) => String(s).replace(/[<>&"]/g, (c) => ({ "<":"&lt;", ">":"&gt;", "&":"&amp;", '"':"&quot;" }[c]));
-
-  const renderLeaderboard = (rows, el) => {
-    if (!el) return;
-    if (!rows?.length) {
-      el.textContent = "Пока пусто — будь первым 🙂";
-      return;
-    }
-    el.innerHTML = rows.map((r, i) => {
-      const name = esc(r.name);
-      const score = r.best_score ?? r.score ?? 0;
-      const medal = i === 0 ? "🥇 " : (i === 1 ? "🥈 " : (i === 2 ? "🥉 " : ""));
-      return `${medal}${i+1}. ${name} — <b>${score}</b>`;
-    }).join("<br>");
-  };
-
-  const loadLeaderboardTop10 = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("malorisa_leaderboard")
-        .select("name, best_score, first_best_time")
-        .order("best_score", { ascending: false })
-        .order("first_best_time", { ascending: true })
-        .limit(10);
-
-      if (error) throw error;
-      renderLeaderboard(data, UI.leaderboard);
-      UI.serverStatus.textContent = "online";
-    } catch (e) {
-      console.warn("Leaderboard load error:", e);
-      UI.leaderboard.textContent = "Не удалось загрузить топ 😕";
-      UI.serverStatus.textContent = "offline";
-    }
-  };
-
-  const loadMenuLeaderboard = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("malorisa_leaderboard")
-        .select("name, best_score, first_best_time")
-        .order("best_score", { ascending: false })
-        .order("first_best_time", { ascending: true })
-        .limit(5);
-
-      if (error) throw error;
-      renderLeaderboard(data, UI.menuLeaderboard);
-    } catch (e) {
-      console.warn("Menu leaderboard error:", e);
-      UI.menuLeaderboard.textContent = "Нет связи 😕";
-    }
-  };
-
-  const getMyBest = async () => {
-    const { player_id } = getSavedPlayer();
-    if (!player_id) return null;
-
-    try {
-      const { data, error } = await supabase
-        .from("malorisa_scores")
-        .select("score, created_at")
-        .eq("player_id", player_id)
-        .order("score", { ascending: false })
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data?.score ?? null;
-    } catch (e) {
-      console.warn("getMyBest error:", e);
-      return null;
-    }
-  };
-
-  const getMyRank = async (myBest) => {
-    if (myBest == null) return null;
-    try {
-      const { count, error } = await supabase
-        .from("malorisa_leaderboard")
-        .select("name", { count: "exact", head: true })
-        .gt("best_score", myBest);
-
-      if (error) throw error;
-      return (count ?? 0) + 1;
-    } catch (e) {
-      console.warn("getMyRank error:", e);
-      return null;
-    }
-  };
-
-  const updateMyStatsUI = async () => {
-    UI.myBest.textContent = "—";
-    UI.myRank.textContent = "—";
-    UI.myTitle.textContent = "—";
-
-    const myBest = await getMyBest();
-    if (myBest == null) return;
-
-    UI.myBest.textContent = String(myBest);
-    UI.myTitle.textContent = getTitleForBest(myBest);
-
-    const rank = await getMyRank(myBest);
-    UI.myRank.textContent = rank ? `#${rank}` : "—";
-  };
-
-  const refreshMenuBadge = async () => {
-    const { name } = getSavedPlayer();
-    if (!name) { UI.myMenuBadge.textContent = "ник: —"; return; }
-    const best = await getMyBest();
-    UI.myMenuBadge.textContent = best != null ? `ты: ${name} • ${best}` : `ты: ${name}`;
-  };
-
-  const goToMenu = async () => {
-    State.mode = "start";
-    hideAllOverlays();
-    showOverlay(UI.start);
-    UI.pause.textContent = "⏸";
-    await loadMenuLeaderboard();
-    await refreshMenuBadge();
-  };
-
-  const endGame = async () => {
-    State.mode = "gameover";
+  const endGame = () => {
+    State.mode = "gameover"
 
     if (State.score > record) {
-      record = State.score;
-      localStorage.setItem("malorisa_record", String(record));
+      record = State.score
+      localStorage.setItem("malorisa_record", String(record))
     }
 
-    UI.record.textContent = record;
-    UI.finalRecord.textContent = record;
-    UI.finalScore.textContent = State.score;
+    UI.record.textContent = record
+    UI.finalRecord.textContent = record
+    UI.finalScore.textContent = State.score
 
-    hideAllOverlays();
-    showOverlay(UI.over);
-
-    await submitScore(State.score);
-    await loadLeaderboardTop10();
-    await updateMyStatsUI();
-    await refreshMenuBadge();
-  };
+    hideAllOverlays()
+    UI.over.style.display = "flex"
+  }
 
   const beginDeathAnimation = () => {
-    const particles = [];
-    const parts = State.snake;
+    // Pixel crumble particles from snake body
+    const particles = []
+    const parts = State.snake
 
     for (const seg of parts) {
-      const baseX = cellToPx(seg.x) + 1;
-      const baseY = cellToPx(seg.y) + 1;
-      const w = BOX - 2;
+      const baseX = cellToPx(seg.x) + 1
+      const baseY = cellToPx(seg.y) + 1
+      const w = BOX - 2
 
-      const offsets = [];
-      for (let yy = 2; yy <= w-6; yy += 6){
-        for (let xx = 2; xx <= w-6; xx += 6){
-          offsets.push({ox: xx, oy: yy});
-        }
-      }
+      const offsets = [
+        { ox: 2, oy: 2 },
+        { ox: w - 6, oy: 2 },
+        { ox: 2, oy: w - 6 },
+        { ox: w - 6, oy: w - 6 },
+      ]
 
       for (const o of offsets) {
-        const px = baseX + o.ox;
-        const py = baseY + o.oy;
+        const px = baseX + o.ox
+        const py = baseY + o.oy
         particles.push({
           x: px,
           y: py,
-          vx: (Math.random() - 0.5) * 1.2,
-          vy: 0.2 + Math.random() * 1.6,
-          size: 3 + Math.floor(Math.random() * 2),
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: 0.4 + Math.random() * 1.2,
+          size: 4,
           life: 1,
-        });
+        })
       }
     }
 
-    State.mode = "dying";
-    State.death = { t: now(), dur: reduceMotion ? 260 : 520, particles };
-    State.shake = { t: now(), dur: reduceMotion ? 120 : 220, mag: 2.5 };
-    State.vignette = 1;
-    sfx("death");
-    vibrate(35);
-  };
+    State.mode = "dying"
+    State.death = { t: now(), dur: 460, particles }
+  }
 
   const setDir = (x, y) => {
-    if (State.mode === "dying" || State.mode === "start" || State.mode === "gameover") return;
-    if (State.dir.x === -x && State.dir.y === -y) return;
-    State.dir = { x, y };
-  };
+    if (State.mode === "dying" || State.mode === "start" || State.mode === "gameover") return
+    if (State.dir.x === -x && State.dir.y === -y) return
+    State.dir = { x, y }
+  }
 
   const openPauseMenu = () => {
-    if (State.mode === "dying" || State.mode === "start" || State.mode === "gameover") return;
-    State.mode = "paused";
-    hideAllOverlays();
-    showOverlay(UI.pauseMenu);
-    UI.pause.textContent = "▶";
-    sfx("click");
-  };
+    if (State.mode === "dying" || State.mode === "start" || State.mode === "gameover") return
+    State.mode = "paused"
+    hideAllOverlays()
+    UI.pauseMenu.style.display = "flex"
+    UI.pause.textContent = "▶"
+  }
 
   const resumeGame = () => {
-    if (State.mode !== "paused") return;
-    State.mode = "playing";
-    hideAllOverlays();
-    UI.pause.textContent = "⏸";
-    sfx("click");
-  };
+    if (State.mode !== "paused") return
+    State.mode = "playing"
+    hideAllOverlays()
+    UI.pause.textContent = "⏸"
+  }
 
+  // Game tick
   const tick = () => {
-    if (State.mode !== "playing") return;
+    if (State.mode !== "playing") return
 
-    const head = State.snake[0];
-    const nx = (head.x + State.dir.x + COLS) % COLS;
-    const ny = (head.y + State.dir.y + ROWS) % ROWS;
-    const newHead = { x: nx, y: ny };
+    const head = State.snake[0]
+    const nx = (head.x + State.dir.x + COLS) % COLS
+    const ny = (head.y + State.dir.y + ROWS) % ROWS
+    const newHead = { x: nx, y: ny }
 
     if (State.snake.some(p => p.x === newHead.x && p.y === newHead.y)) {
-      beginDeathAnimation();
-      return;
+      beginDeathAnimation()
+      return
     }
 
-    State.snake.unshift(newHead);
+    State.snake.unshift(newHead)
 
     if (newHead.x === State.food.x && newHead.y === State.food.y) {
-      State.score++;
-      UI.score.textContent = String(State.score);
+      State.score++
+      UI.score.textContent = String(State.score)
 
-      const t = now();
-      State.pop = { x: State.food.x, y: State.food.y, t, dur: reduceMotion ? 120 : 220 };
-      State.chomp = { t, dur: reduceMotion ? 90 : 170 };
-      State.shake = { t, dur: reduceMotion ? 70 : 110, mag: 1.2 };
+      const t = now()
+      State.pop = { x: State.food.x, y: State.food.y, t, dur: 210 }
+      State.chomp = { t, dur: 170 }
 
-      sfx("eat");
-      vibrate(16);
-      spawnFood();
+      beep(880)
+      vibrate(20)
+      spawnFood()
     } else {
-      State.snake.pop();
+      State.snake.pop()
     }
-  };
+  }
 
-  // ===== Rendering (premium) =====
+  // Rendering
   const drawGrid = () => {
-    const grid = getComputedStyle(document.body).getPropertyValue("--grid").trim();
-    ctx.strokeStyle = grid;
-    ctx.lineWidth = 1;
+    const grid = getComputedStyle(document.body).getPropertyValue("--grid").trim()
+    ctx.strokeStyle = grid
+    ctx.lineWidth = 1
 
     for (let i = 0; i <= COLS; i++) {
-      const x = i * BOX + 0.5;
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvas.height);
-      ctx.stroke();
+      const x = i * BOX + 0.5
+      ctx.beginPath()
+      ctx.moveTo(x, 0)
+      ctx.lineTo(x, canvas.height)
+      ctx.stroke()
     }
     for (let i = 0; i <= ROWS; i++) {
-      const y = i * BOX + 0.5;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
+      const y = i * BOX + 0.5
+      ctx.beginPath()
+      ctx.moveTo(0, y)
+      ctx.lineTo(canvas.width, y)
+      ctx.stroke()
     }
-  };
-
-  const px = (x,y,w,h,color) => {
-    ctx.fillStyle = color;
-    ctx.fillRect(x,y,w,h);
-  };
-
-  const drawFoodIcon = (type, x, y) => {
-    const ox = x + 2;
-    const oy = y + 2;
-
-    const dark = "rgba(0,0,0,0.55)";
-    const light = "rgba(255,255,255,0.18)";
-
-    px(ox+1, oy+13, 14, 3, dark);
-    px(ox+2, oy+12, 12, 3, "rgba(0,0,0,0.22)");
-
-    if (type === "sushi") {
-      px(ox+3, oy+6, 10, 7, "rgba(255,255,255,0.92)");
-      px(ox+3, oy+6, 10, 1, light);
-      px(ox+3, oy+12, 10, 1, "rgba(0,0,0,0.12)");
-      px(ox+4, oy+4, 8, 3, "rgba(255,107,154,0.95)");
-      px(ox+4, oy+4, 8, 1, "rgba(255,255,255,0.22)");
-      px(ox+3, oy+9, 10, 2, "rgba(40,220,160,0.45)");
-    } else if (type === "fries") {
-      px(ox+4, oy+7, 8, 7, "rgba(255,107,154,0.85)");
-      px(ox+4, oy+7, 8, 1, "rgba(255,255,255,0.18)");
-      px(ox+5, oy+2, 2, 6, "rgba(255,215,100,0.95)");
-      px(ox+8, oy+2, 2, 6, "rgba(255,215,100,0.95)");
-      px(ox+11,oy+2, 2, 6, "rgba(255,215,100,0.95)");
-    } else if (type === "burger") {
-      px(ox+4, oy+4, 10, 3, "rgba(255,200,120,0.95)");
-      px(ox+4, oy+4, 10, 1, "rgba(255,255,255,0.18)");
-      px(ox+4, oy+7, 10, 2, "rgba(90,230,160,0.70)");
-      px(ox+5, oy+9, 8, 2, "rgba(120,70,40,0.95)");
-      px(ox+4, oy+11,10, 2, "rgba(255,190,110,0.95)");
-      px(ox+4, oy+12,10, 1, "rgba(0,0,0,0.10)");
-    } else if (type === "pizza") {
-      px(ox+4, oy+4, 10, 9, "rgba(255,215,110,0.95)");
-      px(ox+4, oy+4, 10, 1, "rgba(255,255,255,0.18)");
-      px(ox+4, oy+4, 10, 2, "rgba(255,180,90,0.95)");
-      px(ox+7, oy+8, 2, 2, "rgba(255,107,154,0.95)");
-      px(ox+10,oy+9, 2, 2, "rgba(255,107,154,0.95)");
-      px(ox+12, oy+12, 2, 1, "rgba(0,0,0,0.15)");
-    }
-  };
+  }
 
   const drawFood = () => {
-    const x = cellToPx(State.food.x);
-    const y = cellToPx(State.food.y);
-    drawFoodIcon(State.food.type, x, y);
-  };
+    ctx.font = "18px serif"
+    ctx.textBaseline = "alphabetic"
+    ctx.fillText(State.food.icon, cellToPx(State.food.x) + 2, cellToPx(State.food.y) + 18)
+  }
 
   const drawPop = (t) => {
-    if (!State.pop) return;
-    const { x, y, t: t0, dur } = State.pop;
-    const p = (t - t0) / dur;
-    if (p >= 1) { State.pop = null; return; }
+    if (!State.pop) return
+    const { x, y, t: t0, dur } = State.pop
+    const p = (t - t0) / dur
+    if (p >= 1) { State.pop = null; return }
 
-    const cx = cellToPx(x) + BOX / 2;
-    const cy = cellToPx(y) + BOX / 2;
+    const frame = p < 0.33 ? 1 : (p < 0.66 ? 2 : 3)
+    const size = frame === 1 ? 6 : (frame === 2 ? 10 : 14)
 
-    const accent = getComputedStyle(document.body).getPropertyValue("--accent").trim();
-    ctx.strokeStyle = accent;
-    ctx.lineWidth = 2;
-    ctx.globalAlpha = 1 - p;
+    const cx = cellToPx(x) + BOX / 2
+    const cy = cellToPx(y) + BOX / 2
 
-    const r = 4 + p * 10;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.stroke();
+    const accent = getComputedStyle(document.body).getPropertyValue("--accent").trim()
+    ctx.fillStyle = accent
 
-    ctx.fillStyle = accent;
-    const sparkleCount = 8;
-    for (let i=0;i<sparkleCount;i++){
-      const a = (i / sparkleCount) * Math.PI * 2;
-      const rr = 5 + p * 12;
-      const sx = Math.round(cx + Math.cos(a) * rr);
-      const sy = Math.round(cy + Math.sin(a) * rr);
-      ctx.fillRect(sx, sy, 2, 2);
-    }
-    ctx.globalAlpha = 1;
-  };
+    const half = size / 2
+    ctx.fillRect(Math.round(cx - half), Math.round(cy - half), size, 2)
+    ctx.fillRect(Math.round(cx - half), Math.round(cy + half - 2), size, 2)
+    ctx.fillRect(Math.round(cx - half), Math.round(cy - half), 2, size)
+    ctx.fillRect(Math.round(cx + half - 2), Math.round(cy - half), 2, size)
+  }
 
-  const drawHeadEyesAndMouth = (cx, cy, scale = 1, chompOpen = 0) => {
-    const dx = State.dir.x;
-    const dy = State.dir.y;
-    const lookX = dx * 4;
-    const lookY = dy * 4;
+  const drawHeadEyes = (cx, cy, scale = 1) => {
+    const dx = State.dir.x
+    const dy = State.dir.y
+    const lookX = dx * 4
+    const lookY = dy * 4
 
-    const eyeY = -4 * scale;
-    const eyeX = 4 * scale;
+    const eyeY = -4 * scale
+    const eyeX = 4 * scale
 
-    ctx.fillStyle = "rgba(255,255,255,0.95)";
-    ctx.beginPath();
-    ctx.arc(cx - eyeX + lookX, cy + eyeY + lookY, 2.2 * scale, 0, Math.PI * 2);
-    ctx.arc(cx + eyeX + lookX, cy + eyeY + lookY, 2.2 * scale, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillStyle = "#fff"
+    ctx.beginPath()
+    ctx.arc(cx - eyeX + lookX, cy + eyeY + lookY, 2.2 * scale, 0, Math.PI * 2)
+    ctx.arc(cx + eyeX + lookX, cy + eyeY + lookY, 2.2 * scale, 0, Math.PI * 2)
+    ctx.fill()
 
-    ctx.fillStyle = "rgba(0,0,0,0.80)";
-    ctx.beginPath();
-    ctx.arc(cx - eyeX + lookX, cy + eyeY + lookY, 1.1 * scale, 0, Math.PI * 2);
-    ctx.arc(cx + eyeX + lookX, cy + eyeY + lookY, 1.1 * scale, 0, Math.PI * 2);
-    ctx.fill();
-
-    const mx = cx + dx * 4;
-    const my = cy + dy * 4 + 4;
-    const w = 6 * scale;
-    const h = Math.max(1, Math.round(chompOpen * 3));
-    ctx.fillStyle = "rgba(0,0,0,0.55)";
-    ctx.fillRect(Math.round(mx - w/2), Math.round(my), Math.round(w), h || 1);
-  };
-
-  // ---- CONTINUATION (this is where your file was cut) ----
-  const drawSegment = (x, y, w, h, base, isHead=false) => {
-    // base
-    ctx.fillStyle = base;
-    ctx.fillRect(x, y, w, h);
-
-    // pixel bevel: highlight top-left, shadow bottom-right
-    ctx.fillStyle = "rgba(255,255,255,0.18)";
-    ctx.fillRect(x, y, w, 1);
-    ctx.fillRect(x, y, 1, h);
-
-    ctx.fillStyle = "rgba(0,0,0,0.18)";
-    ctx.fillRect(x, y + h - 1, w, 1);
-    ctx.fillRect(x + w - 1, y, 1, h);
-
-    // subtle inner highlight for head
-    if (isHead){
-      ctx.fillStyle = "rgba(255,255,255,0.10)";
-      ctx.fillRect(x+2, y+2, w-4, 2);
-    }
-  };
+    ctx.fillStyle = "#000"
+    ctx.beginPath()
+    ctx.arc(cx - eyeX + lookX, cy + eyeY + lookY, 1.1 * scale, 0, Math.PI * 2)
+    ctx.arc(cx + eyeX + lookX, cy + eyeY + lookY, 1.1 * scale, 0, Math.PI * 2)
+    ctx.fill()
+  }
 
   const drawSnake = (t) => {
-    const head = State.snake[0];
-    if (!head) return;
+    const head = State.snake[0]
+    if (!head) return
 
-    let headScale = 1;
-    let chompOpen = 0;
-
+    let headScale = 1
     if (State.chomp) {
-      const p = (t - State.chomp.t) / State.chomp.dur;
+      const p = (t - State.chomp.t) / State.chomp.dur
       if (p >= 1) {
-        State.chomp = null;
+        State.chomp = null
       } else {
-        const bump = Math.sin(p * Math.PI);
-        headScale = 1 + bump * 0.12;
-        chompOpen = bump;
+        const bump = Math.sin(p * Math.PI)
+        headScale = 1 + bump * 0.12
       }
     }
 
-    const headColor = "rgba(255,209,225,0.95)";
-    const bodyColor = "rgba(255,107,154,0.92)";
+    const headColor = "#ffd1e1"
+    const bodyColor = "#ff6b9a"
 
     for (let i = 0; i < State.snake.length; i++) {
-      const s = State.snake[i];
-      const x0 = cellToPx(s.x) + 1;
-      const y0 = cellToPx(s.y) + 1;
-      const w = BOX - 2;
-      const h = BOX - 2;
+      const s = State.snake[i]
+      const x = cellToPx(s.x) + 1
+      const y = cellToPx(s.y) + 1
+      const w = BOX - 2
+      const h = BOX - 2
 
       if (i === 0) {
-        const cx = x0 + w / 2;
-        const cy = y0 + h / 2;
-        const sw = w * headScale;
-        const sh = h * headScale;
-        const x = Math.round(cx - sw / 2);
-        const y = Math.round(cy - sh / 2);
+        const cx = x + w / 2
+        const cy = y + h / 2
+        const sw = w * headScale
+        const sh = h * headScale
 
-        drawSegment(x, y, Math.round(sw), Math.round(sh), headColor, true);
-        drawHeadEyesAndMouth(cx, cy, headScale, chompOpen);
+        ctx.fillStyle = headColor
+        ctx.fillRect(
+          Math.round(cx - sw / 2),
+          Math.round(cy - sh / 2),
+          Math.round(sw),
+          Math.round(sh)
+        )
+        drawHeadEyes(cx, cy, headScale)
       } else {
-        drawSegment(x0, y0, w, h, bodyColor, false);
+        ctx.fillStyle = bodyColor
+        ctx.fillRect(x, y, w, h)
       }
     }
-  };
+  }
 
   const drawDeath = (t) => {
-    if (!State.death) return;
-    const { t: t0, dur, particles } = State.death;
-    const p = (t - t0) / dur;
+    if (!State.death) return
+    const { t: t0, dur, particles } = State.death
+    const p = (t - t0) / dur
 
-    const accent = getComputedStyle(document.body).getPropertyValue("--accent").trim();
-    ctx.fillStyle = accent;
+    const accent = getComputedStyle(document.body).getPropertyValue("--accent").trim()
+    ctx.fillStyle = accent
 
     for (const pt of particles) {
-      pt.x += pt.vx;
-      pt.y += pt.vy;
-      pt.vy += 0.07;
-      pt.life = 1 - p;
+      pt.x += pt.vx
+      pt.y += pt.vy
+      pt.vy += 0.06
+      pt.life = 1 - p
 
-      if (pt.life > 0.15 || Math.random() > 0.35) {
-        ctx.globalAlpha = Math.max(0, pt.life);
-        ctx.fillRect(Math.round(pt.x), Math.round(pt.y), pt.size, pt.size);
+      if (pt.life > 0.15 || Math.random() > 0.4) {
+        ctx.fillRect(Math.round(pt.x), Math.round(pt.y), pt.size, pt.size)
       }
     }
-    ctx.globalAlpha = 1;
 
     if (p >= 1) {
-      State.death = null;
-      endGame();
+      State.death = null
+      endGame()
     }
-  };
-
-  const drawVignette = (t) => {
-    // smooth decay
-    State.vignette = Math.max(0, State.vignette - (reduceMotion ? 0.02 : 0.012));
-    if (State.vignette <= 0) return;
-
-    const g = ctx.createRadialGradient(160, 160, 40, 160, 160, 190);
-    g.addColorStop(0, "rgba(0,0,0,0)");
-    g.addColorStop(1, `rgba(0,0,0,${0.35 * State.vignette})`);
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  };
+  }
 
   const render = (t) => {
-    // screen shake
-    let ox = 0, oy = 0;
-    if (State.shake) {
-      const p = (t - State.shake.t) / State.shake.dur;
-      if (p >= 1) {
-        State.shake = null;
-      } else {
-        const mag = State.shake.mag * (1 - p);
-        ox = (Math.random() - 0.5) * mag;
-        oy = (Math.random() - 0.5) * mag;
-      }
-    }
+    const canvasBg = getComputedStyle(document.body).getPropertyValue("--canvas").trim()
+    ctx.fillStyle = canvasBg
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    ctx.save();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.translate(ox, oy);
-
-    // background overlay
-    ctx.fillStyle = "rgba(0,0,0,0)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    drawGrid();
+    drawGrid()
 
     if (State.mode === "dying") {
-      drawDeath(t);
+      drawDeath(t)
     } else {
-      drawFood();
-      drawPop(t);
-      drawSnake(t);
+      drawFood()
+      drawPop(t)
+      drawSnake(t)
     }
 
-    ctx.restore();
-    drawVignette(t);
+    requestAnimationFrame(render)
+  }
 
-    requestAnimationFrame(render);
-  };
-
-  // Fixed tick loop
-  let lastTick = now();
+  // Main loop: fixed tick + rAF render
+  let lastTick = now()
   const loop = () => {
-    const t = now();
+    const t = now()
     if (t - lastTick >= TICK_MS) {
-      lastTick = t;
-      tick();
+      lastTick = t
+      tick()
     }
-    requestAnimationFrame(loop);
-  };
+    requestAnimationFrame(loop)
+  }
 
-  // ===== Controls =====
+  // Controls: buttons
   const bindButton = (selector, x, y) => {
-    const el = document.querySelector(selector);
-    el.onpointerdown = () => setDir(x, y);
-  };
-  bindButton(".up", 0, -1);
-  bindButton(".down", 0, 1);
-  bindButton(".left", -1, 0);
-  bindButton(".right", 1, 0);
+    document.querySelector(selector).onpointerdown = () => setDir(x, y)
+  }
+  bindButton(".up", 0, -1)
+  bindButton(".down", 0, 1)
+  bindButton(".left", -1, 0)
+  bindButton(".right", 1, 0)
 
+  // Controls: keyboard
   document.addEventListener("keydown", (e) => {
-    const k = e.key;
-    if (k === "ArrowUp" || k === "w" || k === "W") setDir(0, -1);
-    if (k === "ArrowDown" || k === "s" || k === "S") setDir(0, 1);
-    if (k === "ArrowLeft" || k === "a" || k === "A") setDir(-1, 0);
-    if (k === "ArrowRight" || k === "d" || k === "D") setDir(1, 0);
+    const k = e.key
+    if (k === "ArrowUp" || k === "w" || k === "W") setDir(0, -1)
+    if (k === "ArrowDown" || k === "s" || k === "S") setDir(0, 1)
+    if (k === "ArrowLeft" || k === "a" || k === "A") setDir(-1, 0)
+    if (k === "ArrowRight" || k === "d" || k === "D") setDir(1, 0)
 
+    // Пауза: Esc / Space / Enter
     if (k === "Escape" || k === " " || k === "Enter") {
-      if (State.mode === "playing") openPauseMenu();
-      else if (State.mode === "paused") resumeGame();
+      if (State.mode === "playing") openPauseMenu()
+      else if (State.mode === "paused") resumeGame()
     }
-  });
+  })
 
-  // Swipe
-  let sx = 0, sy = 0;
-  canvas.addEventListener("pointerdown", (e) => { sx = e.clientX; sy = e.clientY; });
+  // Controls: swipe on canvas
+  let sx = 0, sy = 0
+  canvas.addEventListener("pointerdown", (e) => { sx = e.clientX; sy = e.clientY })
   canvas.addEventListener("pointerup", (e) => {
-    const dx = e.clientX - sx;
-    const dy = e.clientY - sy;
-    if (Math.abs(dx) < 18 && Math.abs(dy) < 18) return;
-    if (Math.abs(dx) > Math.abs(dy)) setDir(dx > 0 ? 1 : -1, 0);
-    else setDir(0, dy > 0 ? 1 : -1);
-  });
+    const dx = e.clientX - sx
+    const dy = e.clientY - sy
+    if (Math.abs(dx) < 18 && Math.abs(dy) < 18) return
+    if (Math.abs(dx) > Math.abs(dy)) setDir(dx > 0 ? 1 : -1, 0)
+    else setDir(0, dy > 0 ? 1 : -1)
+  })
 
-  // ===== UI actions =====
-  UI.theme.onpointerdown = () => { document.body.classList.toggle("light"); sfx("click"); };
+  // UI actions
+  UI.theme.onpointerdown = () => document.body.classList.toggle("light")
 
   UI.sound.onpointerdown = async () => {
-    await initAudio();
-    soundOn = !soundOn;
-    localStorage.setItem("malorisa_sound", soundOn ? "1" : "0");
-    UI.sound.textContent = soundOn ? "🔊" : "🔇";
-    sfx("click");
-  };
+    await initAudio()
+    soundOn = !soundOn
+    localStorage.setItem("malorisa_sound", soundOn ? "1" : "0")
+    UI.sound.textContent = soundOn ? "🔊" : "🔇"
+    beep(520, 0.08)
+  }
 
+  // Pause button opens pause menu (continue or main menu)
   UI.pause.onpointerdown = () => {
-    if (State.mode === "playing") openPauseMenu();
-    else if (State.mode === "paused") resumeGame();
-  };
+    if (State.mode === "playing") openPauseMenu()
+    else if (State.mode === "paused") resumeGame()
+  }
 
-  UI.resume.onpointerdown = () => resumeGame();
-  UI.toMenu.onpointerdown = () => goToMenu();
+  UI.resume.onpointerdown = () => resumeGame()
+  UI.toMenu.onpointerdown = () => goToMenu()
 
-  const shareGame = async () => {
-    const text = "Попробуй побить мой рекорд в змейке от МалоРиса";
-    const url = location.href;
+  UI.invite.onpointerdown = () => shareGame()
 
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "МалоРиса — Змейка", text, url });
-        return;
-      } catch {}
-    }
-    const fallback = `${text}\n${url}`;
-    try {
-      await navigator.clipboard.writeText(fallback);
-      showToast("Ссылка скопирована ✅");
-    } catch {
-      window.prompt("Скопируй и отправь другу:", fallback);
-    }
-  };
+  // ✅ Поставь свой сайт сюда
+  const SITE_URL = "https://malorisa.ru"
+  UI.site.onpointerdown = () => window.open(SITE_URL, "_blank")
 
-  UI.invite.onpointerdown = () => { sfx("click"); shareGame(); };
-
-  const SITE_URL = "https://malorisa.ru";
-  UI.site.onpointerdown = () => { sfx("click"); window.open(SITE_URL, "_blank"); };
-
-  const startIfReady = async () => {
-    if (!canPlay()) {
-      setNickStatus("Сначала закрепи ник 👆", "err");
-      showToast("Сначала введи уникальный ник ✅");
-      return;
-    }
-    await initAudio();
-    sfx("click");
-    hideAllOverlays();
-    startGame();
-  };
-
-  UI.play.onpointerdown = async () => startIfReady();
+  UI.play.onpointerdown = async () => {
+    await initAudio()
+    beep(440, 0.14)
+    hideAllOverlays()
+    startGame()
+  }
 
   UI.restart.onpointerdown = async () => {
-    await initAudio();
-    sfx("click");
-    hideAllOverlays();
-    startGame();
-  };
+    await initAudio()
+    beep(440, 0.14)
+    hideAllOverlays()
+    startGame()
+  }
 
-  UI.menuFromOver.onpointerdown = () => goToMenu();
+  UI.menuFromOver.onpointerdown = () => goToMenu()
 
-  // ===== Boot =====
-  const boot = async () => {
-    // show start overlay correctly (your CSS needs .show)
-    showOverlay(UI.start);
-    ensureNickRegisteredUI();
-
-    // Try to load menu leaderboard (won't break game if offline)
-    await loadMenuLeaderboard();
-    await refreshMenuBadge();
-
-    requestAnimationFrame(render);
-    requestAnimationFrame(loop);
-  };
-
-  boot();
-})();
+  // Start loops
+  requestAnimationFrame(render)
+  requestAnimationFrame(loop)
+})()
 </script>
 
 </body>
