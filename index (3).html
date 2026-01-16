@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>МалоРиса — Змейка</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg0:#0b0b10;
+  --bg1:#10101a;
+  --panel: rgba(18,18,26,0.72);
+  --canvas:#07070c;
+  --text:#f5f5ff;
+  --muted: rgba(245,245,255,0.72);
+  --accent:#ff6b9a;
+  --grid: rgba(255,255,255,0.05);
+  --btn-face: rgba(255,255,255,0.08);
+  --btn-shadow: rgba(0,0,0,0.55);
+  --shadow-lg: 0 18px 60px rgba(0,0,0,0.55);
+  --shadow-md: 0 12px 30px rgba(0,0,0,0.35);
+  --shadow-in: inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -2px 0 rgba(0,0,0,0.25);
+}
+
+body.light{
+  --bg0:#f6f6fb;
+  --bg1:#ececf5;
+  --panel: rgba(255,255,255,0.78);
+  --canvas:#f1f1f8;
+  --text:#11111a;
+  --muted: rgba(17,17,26,0.68);
+  --grid: rgba(0,0,0,0.06);
+  --btn-face: rgba(0,0,0,0.06);
+  --btn-shadow: rgba(0,0,0,0.18);
+  --shadow-lg: 0 18px 60px rgba(0,0,0,0.14);
+  --shadow-md: 0 12px 30px rgba(0,0,0,0.10);
+  --shadow-in: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 0 rgba(0,0,0,0.08);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html, body { height: 100%; }
+
+body{
+  background: radial-gradient(1200px 700px at 30% 10%, rgba(255,107,154,0.16), transparent 60%),
+              radial-gradient(900px 500px at 80% 20%, rgba(139,233,255,0.12), transparent 55%),
+              linear-gradient(180deg, var(--bg0), var(--bg1));
+  color:var(--text);
+  font-family:system-ui,sans-serif;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:100vh;
+  touch-action:none;
+  overflow:hidden;
+}
+
+header{
+  width:min(980px, 100%);
+  padding:12px 14px;
+  margin-top: 8px;
+  border-radius: 16px;
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: var(--shadow-md);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.title{
+  font-family:'Press Start 2P', monospace;
+  font-size:14px;
+  letter-spacing: 0.5px;
+  color:var(--accent);
+  text-shadow: 0 0 18px rgba(255,107,154,0.35);
+}
+
+.pill{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  color: var(--muted);
+  font-size: 14px;
+}
+.pill b{ color: var(--text); }
+
+.btn-ui{
+  padding:7px 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: var(--shadow-in);
+  user-select:none;
+  transition: transform .08s, filter .08s;
+}
+.btn-ui:active{ transform: translateY(2px); filter: brightness(1.05); }
+body.light .btn-ui{ background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.08); }
+
+#game{
+  background: radial-gradient(900px 600px at 50% 15%, rgba(255,255,255,0.03), transparent 55%),
+              linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)),
+              var(--canvas);
+  border-radius: 18px;
+  margin: 12px 0 6px 0;
+  image-rendering: pixelated;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255,255,255,0.10);
+  width: min(92vw, 440px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+}
+
+.controls{
+  margin-top: 24px;
+  display:grid;
+  grid-template-columns:repeat(3,74px);
+  grid-template-rows:repeat(2,74px);
+  gap: 18px;
+  position:relative;
+  padding: 14px;
+  border-radius: 28px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+}
+
+.btn{
+  background: var(--btn-face);
+  border-radius: 14px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size: 26px;
+  color: rgba(255,255,255,0.9);
+  user-select:none;
+  box-shadow: var(--shadow-in), 0 10px 0 var(--btn-shadow);
+  transition: transform .07s, box-shadow .07s, filter .07s;
+}
+body.light .btn{ color: rgba(0,0,0,0.78); }
+
+.btn:active{
+  transform: translateY(5px);
+  box-shadow: var(--shadow-in), 0 5px 0 var(--btn-shadow);
+  filter: brightness(1.05);
+}
+
+.up{grid-column:2}
+.left{grid-column:1}
+.down{grid-column:2}
+.right{grid-column:3}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  z-index:10;
+  padding: 22px;
+
+  background: radial-gradient(1200px 700px at 20% 10%, rgba(255,107,154,0.16), transparent 60%),
+              radial-gradient(900px 500px at 80% 20%, rgba(139,233,255,0.12), transparent 55%),
+              rgba(0,0,0,0.25);
+  backdrop-filter: blur(14px);
+
+  opacity:0;
+  transform: scale(1.03);
+  pointer-events:none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+.overlay.show{
+  opacity:1;
+  transform: scale(1);
+  pointer-events:auto;
+}
+
+.card{
+  width: min(420px, 92vw);
+  border-radius: 18px;
+  background: var(--panel);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: var(--shadow-lg);
+  padding: 18px;
+}
+
+.logo{
+  font-family:'Press Start 2P', monospace;
+  font-size:24px;
+  color:var(--accent);
+  margin-bottom:14px;
+  text-shadow: 0 0 26px rgba(255,107,154,0.35);
+}
+
+.pixel-btn{
+  font-family:'Press Start 2P', monospace;
+  padding:16px 18px;
+  border-radius:14px;
+  background: linear-gradient(180deg, rgba(255,107,154,1), rgba(255,107,154,0.86));
+  color:#0b0b10;
+  margin-top:12px;
+  user-select:none;
+  text-align:center;
+  width: 100%;
+  box-shadow: 0 14px 34px rgba(255,107,154,0.20);
+  border: 1px solid rgba(255,255,255,0.15);
+  transition: transform .08s, filter .08s;
+}
+.pixel-btn:active{ transform: translateY(2px); filter: brightness(1.03); }
+
+.pixel-btn.secondary{
+  background: rgba(255,255,255,0.06);
+  color:var(--accent);
+  border: 1px solid rgba(255,107,154,0.35);
+  box-shadow: none;
+}
+
+.small{ font-size:12px; margin-top:10px; color: var(--muted); }
+#toast{ opacity:0; transition:opacity .2s; }
+
+.nick-wrap{
+  width:100%;
+  background: rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: var(--shadow-in);
+  border: 1px solid rgba(255,255,255,0.10);
+  margin-top: 10px;
+}
+.nick-label{
+  font-family:'Press Start 2P', monospace;
+  font-size: 10px;
+  opacity:.92;
+  margin-bottom: 10px;
+  color: rgba(255,255,255,0.88);
+}
+body.light .nick-label{ color: rgba(0,0,0,0.72); }
+
+.nick-row{ display:flex; gap:10px; }
+.nick-input{
+  flex:1;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.12);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+body.light .nick-input{
+  background: rgba(255,255,255,0.65);
+  border-color: rgba(0,0,0,0.10);
+}
+
+.nick-save{
+  font-family:'Press Start 2P', monospace;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,107,154,0.55);
+  background: rgba(255,107,154,0.08);
+  color: var(--accent);
+  user-select:none;
+  white-space:nowrap;
+  text-align:center;
+  min-width: 92px;
+}
+.nick-save:active{ transform: translateY(2px); }
+
+.nick-hint{ margin-top:10px; font-size:12px; color: var(--muted); }
+.nick-status{ margin-top:8px; font-size: 12px; min-height: 16px; }
+.nick-status.ok{ color: #6dffb0; }
+.nick-status.err{ color: #ff7b9e; }
+
+.lb-wrap{
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: var(--shadow-in);
+  width: 100%;
+}
+.lb-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.lb{
+  font-size: 12px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.90);
+}
+body.light .lb{ color: rgba(0,0,0,0.82); }
+
+.badge{
+  display:inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: var(--muted);
+}
+</style>
+</head>
+
+<body>
+
+<!-- MAIN MENU (ПОКАЗЫВАЕТСЯ СРАЗУ) -->
+<div class="overlay show" id="start" style="display:flex">
+  <div class="card">
+    <div class="logo">МАЛОРИСА</div>
+
+    <div class="nick-wrap">
+      <div class="nick-label">НИК</div>
+      <div class="nick-row">
+        <input id="nick" class="nick-input" maxlength="24" placeholder="например: malorisa_fox" />
+        <div class="nick-save" id="saveNick">OK</div>
+      </div>
+
+      <div class="nick-hint">Ник 1–24 символа. Нажми OK чтобы сохранить.</div>
+      <div class="nick-status" id="nickStatus"></div>
+    </div>
+
+    <div class="lb-wrap">
+      <div class="lb-title">
+        <span>🏆 Топ-5</span>
+        <span class="badge" id="serverStatus">—</span>
+      </div>
+      <div class="lb" id="menuLeaderboard">Загрузка…</div>
+    </div>
+
+    <div class="pixel-btn" id="play">ИГРАТЬ</div>
+    <div class="pixel-btn secondary" id="invite">ПРИГЛАСИТЬ ДРУГА</div>
+
+    <div class="small" id="toast"></div>
+    <div class="small" style="margin-top:8px;">
+      Пауза: Esc / Space / Enter. Управление: стрелки/WASD/свайп.
+    </div>
+  </div>
+</div>
+
+<!-- PAUSE MENU -->
+<div class="overlay" id="pauseMenu" style="display:none">
+  <div class="card">
+    <div class="logo">ПАУЗА</div>
+    <div class="pixel-btn" id="resume">ПРОДОЛЖИТЬ</div>
+    <div class="pixel-btn secondary" id="toMenu">В ГЛАВНОЕ МЕНЮ</div>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div class="overlay" id="over" style="display:none">
+  <div class="card">
+    <div class="logo">GAME OVER</div>
+
+    <div class="small" style="opacity:1">
+      Счет: <b><span id="finalScore">0</span></b> |
+      Рекорд: <b><span id="finalRecord">0</span></b>
+    </div>
+
+    <div class="pixel-btn" id="restart">СНОВА</div>
+    <div class="pixel-btn secondary" id="menuFromOver">В ГЛАВНОЕ МЕНЮ</div>
+
+    <div class="lb-wrap" style="margin-top:14px;">
+      <div class="lb-title">
+        <span>🏆 Топ-10</span>
+        <span class="badge" id="serverStatusOver">—</span>
+      </div>
+      <div class="lb" id="leaderboard">Загрузка…</div>
+    </div>
+  </div>
+</div>
+
+<header>
+  <span class="pill"><b id="score">0</b></span>
+  <span class="title">МАЛОРИСА</span>
+  <span class="pill" style="gap:8px;">
+    <span>Рекорд: <b id="record">0</b></span>
+    <span class="btn-ui" id="sound" title="Звук">🔊</span>
+    <span class="btn-ui" id="pause" title="Пауза">⏸</span>
+    <span class="btn-ui" id="theme" title="Тема">☀︎ / 🌙</span>
+  </span>
+</header>
+
+<canvas id="game" width="320" height="320"></canvas>
+
+<div class="controls">
+  <div></div><div class="btn up">▲</div><div></div>
+  <div class="btn left">◀</div><div class="btn down">▼</div><div class="btn right">▶</div>
+</div>
+
+<!-- Supabase JS (UMD) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  // ====== SUPABASE CONFIG ======
+  const SUPABASE_URL = "https://xymyjykcispbuqexfgop.supabase.co";
+  const SUPABASE_ANON_KEY = "PASTE_YOUR_ANON_KEY_HERE"; // <-- вставь сюда anon key
+
+  // Таблица лидерборда:
+  // leaderboard: { name (text, pk), best_score (int), updated_at (timestamptz default now()) }
+  const LEADERBOARD_TABLE = "leaderboard";
+
+  // ====== SAFE SUPABASE INIT (не ломаем игру если ключа нет) ======
+  let supabase = null;
+  let supabaseReady = false;
+
+  const initSupabase = async () => {
+    try {
+      if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("PASTE_")) {
+        supabaseReady = false;
+        return;
+      }
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      // быстрый ping
+      const { error } = await supabase.from(LEADERBOARD_TABLE).select("name").limit(1);
+      if (error) throw error;
+      supabaseReady = true;
+    } catch (e) {
+      console.warn("Supabase init failed, fallback to local:", e);
+      supabaseReady = false;
+      supabase = null;
+    }
+  };
+
+  // ===== UI =====
+  const UI = {
+    start: $("start"),
+    pauseMenu: $("pauseMenu"),
+    over: $("over"),
+
+    play: $("play"),
+    invite: $("invite"),
+    toast: $("toast"),
+
+    resume: $("resume"),
+    toMenu: $("toMenu"),
+
+    restart: $("restart"),
+    menuFromOver: $("menuFromOver"),
+
+    score: $("score"),
+    record: $("record"),
+    finalScore: $("finalScore"),
+    finalRecord: $("finalRecord"),
+
+    pause: $("pause"),
+    theme: $("theme"),
+    sound: $("sound"),
+
+    leaderboard: $("leaderboard"),
+    menuLeaderboard: $("menuLeaderboard"),
+
+    nick: $("nick"),
+    saveNick: $("saveNick"),
+    nickStatus: $("nickStatus"),
+
+    serverStatus: $("serverStatus"),
+    serverStatusOver: $("serverStatusOver"),
+  };
+
+  const showToast = (text) => {
+    UI.toast.textContent = text;
+    UI.toast.style.opacity = "1";
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => UI.toast.style.opacity = "0", 1400);
+  };
+
+  const setNickStatus = (text, kind="") => {
+    UI.nickStatus.textContent = text || "";
+    UI.nickStatus.className = "nick-status " + (kind || "");
+  };
+
+  const showOverlay = (el) => {
+    el.style.display = "flex";
+    requestAnimationFrame(() => el.classList.add("show"));
+  };
+  const hideOverlay = (el) => {
+    el.classList.remove("show");
+    setTimeout(() => { el.style.display = "none"; }, 180);
+  };
+  const hideAllOverlays = () => {
+    hideOverlay(UI.start);
+    hideOverlay(UI.pauseMenu);
+    hideOverlay(UI.over);
+  };
+
+  // ===== Storage =====
+  const LS_PLAYER = "malorisa_player_name";
+  const LS_RECORD = "malorisa_record";
+  const LS_SOUND = "malorisa_sound";
+  const LS_LOCAL_SCORES = "malorisa_scores_local_v1";
+
+  let record = Number(localStorage.getItem(LS_RECORD) || 0);
+  let soundOn = localStorage.getItem(LS_SOUND) !== "0";
+  UI.record.textContent = record;
+  UI.finalRecord.textContent = record;
+  UI.sound.textContent = soundOn ? "🔊" : "🔇";
+
+  const normalizeNick = (s) => (s || "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[^\p{L}\p{N}_\-\.]/gu, "")
+    .slice(0, 24);
+
+  const getName = () => localStorage.getItem(LS_PLAYER) || "";
+  const setName = (v) => localStorage.setItem(LS_PLAYER, v);
+
+  const loadLocalScores = () => {
+    try { return JSON.parse(localStorage.getItem(LS_LOCAL_SCORES) || "[]") || []; }
+    catch { return []; }
+  };
+  const saveLocalScores = (arr) => localStorage.setItem(LS_LOCAL_SCORES, JSON.stringify(arr));
+
+  const addLocalScore = (name, score) => {
+    const arr = loadLocalScores();
+    arr.push({ name, score, ts: Date.now() });
+    arr.sort((a,b) => (b.score - a.score) || (a.ts - b.ts));
+    saveLocalScores(arr.slice(0, 200));
+  };
+
+  const esc = (s) => String(s).replace(/[<>&"]/g, (c) => ({ "<":"&lt;", ">":"&gt;", "&":"&amp;", '"':"&quot;" }[c]));
+
+  const renderLeaderboard = (rows, el) => {
+    if (!rows?.length) { el.textContent = "Пока пусто — будь первым 🙂"; return; }
+    el.innerHTML = rows.map((r,i) => {
+      const medal = i===0 ? "🥇 " : i===1 ? "🥈 " : i===2 ? "🥉 " : "";
+      return `${medal}${i+1}. ${esc(r.name)} — <b>${r.best_score}</b>`;
+    }).join("<br>");
+  };
+
+  // ===== Supabase leaderboard ops =====
+  const fetchTop = async (limit) => {
+    if (!supabaseReady) return null;
+    const { data, error } = await supabase
+      .from(LEADERBOARD_TABLE)
+      .select("name,best_score,updated_at")
+      .order("best_score", { ascending: false })
+      .order("updated_at", { ascending: true })
+      .limit(limit);
+    if (error) throw error;
+    return data || [];
+  };
+
+  const upsertBest = async (name, score) => {
+    if (!supabaseReady) return false;
+
+    // Читаем текущий лучший
+    const { data: cur, error: e1 } = await supabase
+      .from(LEADERBOARD_TABLE)
+      .select("best_score")
+      .eq("name", name)
+      .maybeSingle();
+
+    if (e1) throw e1;
+
+    const curBest = cur?.best_score ?? null;
+    if (curBest != null && curBest >= score) return true;
+
+    const payload = { name, best_score: score, updated_at: new Date().toISOString() };
+    const { error: e2 } = await supabase.from(LEADERBOARD_TABLE).upsert(payload, { onConflict: "name" });
+    if (e2) throw e2;
+    return true;
+  };
+
+  // ===== Fallback local top (best per name) =====
+  const getLocalTop = (limit) => {
+    const arr = loadLocalScores();
+    const bestMap = new Map();
+    for (const x of arr) {
+      const cur = bestMap.get(x.name);
+      if (!cur || x.score > cur.best_score || (x.score === cur.best_score && x.ts < cur.ts)) {
+        bestMap.set(x.name, { name: x.name, best_score: x.score, ts: x.ts });
+      }
+    }
+    const bestArr = [...bestMap.values()];
+    bestArr.sort((a,b) => (b.best_score - a.best_score) || (a.ts - b.ts));
+    return bestArr.slice(0, limit).map(({name,best_score}) => ({ name, best_score }));
+  };
+
+  const loadMenuLeaderboard = async () => {
+    try {
+      if (supabaseReady) {
+        UI.serverStatus.textContent = "supabase";
+        const rows = await fetchTop(5);
+        renderLeaderboard(rows, UI.menuLeaderboard);
+      } else {
+        UI.serverStatus.textContent = "local";
+        renderLeaderboard(getLocalTop(5), UI.menuLeaderboard);
+      }
+    } catch (e) {
+      console.warn(e);
+      UI.serverStatus.textContent = "local";
+      renderLeaderboard(getLocalTop(5), UI.menuLeaderboard);
+    }
+  };
+
+  const loadOverLeaderboard = async () => {
+    try {
+      if (supabaseReady) {
+        UI.serverStatusOver.textContent = "supabase";
+        const rows = await fetchTop(10);
+        renderLeaderboard(rows, UI.leaderboard);
+      } else {
+        UI.serverStatusOver.textContent = "local";
+        renderLeaderboard(getLocalTop(10), UI.leaderboard);
+      }
+    } catch (e) {
+      console.warn(e);
+      UI.serverStatusOver.textContent = "local";
+      renderLeaderboard(getLocalTop(10), UI.leaderboard);
+    }
+  };
+
+  // ===== Nick save =====
+  const saveNick = async () => {
+    const name = normalizeNick(UI.nick.value);
+    UI.nick.value = name;
+
+    if (!name || name.length < 1 || name.length > 24) {
+      setNickStatus("Ник должен быть 1–24 символа", "err");
+      return false;
+    }
+
+    setName(name);
+    setNickStatus(`✅ Ник сохранён: ${name}`, "ok");
+    showToast("Ник сохранён ✅");
+    return true;
+  };
+
+  UI.saveNick.onpointerdown = async () => {
+    await saveNick();
+  };
+  UI.nick.addEventListener("keydown", async (e) => {
+    if (e.key === "Enter") await saveNick();
+  });
+
+  // ===== Audio (optional) =====
+  let audioCtx = null;
+  const initAudio = async () => {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") { try { await audioCtx.resume(); } catch {} }
+  };
+  const sfx = (type) => {
+    if (!soundOn || !audioCtx) return;
+    const t0 = audioCtx.currentTime;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g).connect(audioCtx.destination);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.12, t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.12);
+    o.type = "square";
+    o.frequency.setValueAtTime(type==="eat" ? 880 : 520, t0);
+    o.start(t0);
+    o.stop(t0 + 0.14);
+  };
+
+  // ===== Game =====
+  const canvas = $("game");
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+
+  const BOX = 20;
+  const COLS = canvas.width / BOX;
+  const ROWS = canvas.height / BOX;
+  const TICK_MS = 150;
+  const FOODS = ["sushi","fries","burger","pizza"];
+
+  const State = {
+    mode: "start",
+    snake: [],
+    dir: { x: 1, y: 0 },
+    food: { x: 5, y: 5, type: "sushi" },
+    score: 0
+  };
+
+  const cellToPx = (c) => c * BOX;
+
+  const spawnFood = () => {
+    let f;
+    do {
+      f = {
+        x: Math.floor(Math.random() * COLS),
+        y: Math.floor(Math.random() * ROWS),
+        type: FOODS[Math.floor(Math.random() * FOODS.length)]
+      };
+    } while (State.snake.some(p => p.x === f.x && p.y === f.y));
+    State.food = f;
+  };
+
+  const startGame = () => {
+    State.snake = [{ x: 10, y: 10 }];
+    State.dir = { x: 1, y: 0 };
+    State.score = 0;
+    State.mode = "playing";
+    UI.score.textContent = "0";
+    UI.pause.textContent = "⏸";
+    spawnFood();
+  };
+
+  const endGame = async () => {
+    State.mode = "gameover";
+
+    if (State.score > record) {
+      record = State.score;
+      localStorage.setItem(LS_RECORD, String(record));
+    }
+    UI.record.textContent = record;
+    UI.finalRecord.textContent = record;
+    UI.finalScore.textContent = State.score;
+
+    const name = getName();
+    if (name) {
+      // local history (на всякий случай)
+      addLocalScore(name, State.score);
+
+      // supabase best upsert
+      try { await upsertBest(name, State.score); }
+      catch (e) { console.warn("Supabase upsert failed:", e); }
+    }
+
+    hideAllOverlays();
+    showOverlay(UI.over);
+    await loadOverLeaderboard();
+    await loadMenuLeaderboard();
+  };
+
+  const setDir = (x, y) => {
+    if (State.mode !== "playing") return;
+    if (State.dir.x === -x && State.dir.y === -y) return;
+    State.dir = { x, y };
+  };
+
+  const openPauseMenu = () => {
+    if (State.mode !== "playing") return;
+    State.mode = "paused";
+    hideAllOverlays();
+    showOverlay(UI.pauseMenu);
+    UI.pause.textContent = "▶";
+    sfx("click");
+  };
+
+  const resumeGame = () => {
+    if (State.mode !== "paused") return;
+    State.mode = "playing";
+    hideAllOverlays();
+    UI.pause.textContent = "⏸";
+    sfx("click");
+  };
+
+  const tick = () => {
+    if (State.mode !== "playing") return;
+
+    const head = State.snake[0];
+    const nx = (head.x + State.dir.x + COLS) % COLS;
+    const ny = (head.y + State.dir.y + ROWS) % ROWS;
+    const newHead = { x: nx, y: ny };
+
+    if (State.snake.some(p => p.x === newHead.x && p.y === newHead.y)) {
+      endGame();
+      return;
+    }
+
+    State.snake.unshift(newHead);
+
+    if (newHead.x === State.food.x && newHead.y === State.food.y) {
+      State.score++;
+      UI.score.textContent = String(State.score);
+      sfx("eat");
+      spawnFood();
+    } else {
+      State.snake.pop();
+    }
+  };
+
+  const drawGrid = () => {
+    const grid = getComputedStyle(document.body).getPropertyValue("--grid").trim();
+    ctx.strokeStyle = grid;
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= COLS; i++) {
+      const x = i * BOX + 0.5;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    }
+    for (let i = 0; i <= ROWS; i++) {
+      const y = i * BOX + 0.5;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    }
+  };
+
+  const drawFood = () => {
+    const x = cellToPx(State.food.x);
+    const y = cellToPx(State.food.y);
+    ctx.fillStyle = "rgba(255,107,154,0.95)";
+    ctx.fillRect(x+4, y+4, BOX-8, BOX-8);
+  };
+
+  const drawSnake = () => {
+    for (let i=0;i<State.snake.length;i++){
+      const s = State.snake[i];
+      const x = cellToPx(s.x)+1;
+      const y = cellToPx(s.y)+1;
+      ctx.fillStyle = i===0 ? "rgba(255,209,225,0.95)" : "rgba(255,107,154,0.92)";
+      ctx.fillRect(x, y, BOX-2, BOX-2);
+    }
+  };
+
+  const render = () => {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawGrid();
+    if (State.mode !== "start") drawFood();
+    drawSnake();
+    requestAnimationFrame(render);
+  };
+
+  let lastTick = performance.now();
+  const loop = () => {
+    const t = performance.now();
+    if (t - lastTick >= TICK_MS) { lastTick = t; tick(); }
+    requestAnimationFrame(loop);
+  };
+
+  // Controls buttons
+  const bindButton = (selector, x, y) => {
+    const el = document.querySelector(selector);
+    el.onpointerdown = () => setDir(x, y);
+  };
+  bindButton(".up", 0, -1);
+  bindButton(".down", 0, 1);
+  bindButton(".left", -1, 0);
+  bindButton(".right", 1, 0);
+
+  // Keyboard + pause
+  document.addEventListener("keydown", (e) => {
+    const k = e.key;
+    if (k === "ArrowUp" || k === "w" || k === "W") setDir(0, -1);
+    if (k === "ArrowDown" || k === "s" || k === "S") setDir(0, 1);
+    if (k === "ArrowLeft" || k === "a" || k === "A") setDir(-1, 0);
+    if (k === "ArrowRight" || k === "d" || k === "D") setDir(1, 0);
+
+    if (k === "Escape" || k === " " || k === "Enter") {
+      if (State.mode === "playing") openPauseMenu();
+      else if (State.mode === "paused") resumeGame();
+    }
+  });
+
+  // Swipe
+  let sx = 0, sy = 0;
+  canvas.addEventListener("pointerdown", (e) => { sx = e.clientX; sy = e.clientY; });
+  canvas.addEventListener("pointerup", (e) => {
+    const dx = e.clientX - sx;
+    const dy = e.clientY - sy;
+    if (Math.abs(dx) < 18 && Math.abs(dy) < 18) return;
+    if (Math.abs(dx) > Math.abs(dy)) setDir(dx > 0 ? 1 : -1, 0);
+    else setDir(0, dy > 0 ? 1 : -1);
+  });
+
+  // UI actions
+  UI.theme.onpointerdown = () => { document.body.classList.toggle("light"); sfx("click"); };
+
+  UI.sound.onpointerdown = async () => {
+    await initAudio();
+    soundOn = !soundOn;
+    localStorage.setItem(LS_SOUND, soundOn ? "1" : "0");
+    UI.sound.textContent = soundOn ? "🔊" : "🔇";
+    sfx("click");
+  };
+
+  UI.pause.onpointerdown = () => {
+    if (State.mode === "playing") openPauseMenu();
+    else if (State.mode === "paused") resumeGame();
+  };
+
+  UI.resume.onpointerdown = () => resumeGame();
+  UI.toMenu.onpointerdown = () => {
+    State.mode = "start";
+    hideAllOverlays();
+    showOverlay(UI.start);
+    UI.pause.textContent = "⏸";
+    loadMenuLeaderboard();
+  };
+
+  UI.menuFromOver.onpointerdown = () => {
+    State.mode = "start";
+    hideAllOverlays();
+    showOverlay(UI.start);
+    UI.pause.textContent = "⏸";
+    loadMenuLeaderboard();
+  };
+
+  const shareGame = async () => {
+    const text = "Попробуй побить мой рекорд в змейке от МалоРиса";
+    const url = location.href;
+    if (navigator.share) {
+      try { await navigator.share({ title: "МалоРиса — Змейка", text, url }); return; } catch {}
+    }
+    const fallback = `${text}\n${url}`;
+    try { await navigator.clipboard.writeText(fallback); showToast("Ссылка скопирована ✅"); }
+    catch { window.prompt("Скопируй и отправь другу:", fallback); }
+  };
+  UI.invite.onpointerdown = () => { sfx("click"); shareGame(); };
+
+  UI.play.onpointerdown = async () => {
+    const name = getName();
+    if (!name) { setNickStatus("Сначала введи ник и нажми OK", "err"); showToast("Сначала введи ник ✅"); return; }
+    await initAudio();
+    sfx("click");
+    hideAllOverlays();
+    startGame();
+  };
+
+  UI.restart.onpointerdown = async () => {
+    await initAudio();
+    sfx("click");
+    hideAllOverlays();
+    startGame();
+  };
+
+  // ===== BOOT =====
+  const boot = async () => {
+    try {
+      // показать меню сразу (уже show)
+      const saved = getName();
+      if (saved) { UI.nick.value = saved; setNickStatus(`✅ Ник: ${saved}`, "ok"); }
+      else setNickStatus("Введи ник и нажми OK", "");
+
+      await initSupabase();
+      UI.serverStatus.textContent = supabaseReady ? "supabase" : "local";
+      UI.serverStatusOver.textContent = UI.serverStatus.textContent;
+
+      await loadMenuLeaderboard();
+
+      requestAnimationFrame(render);
+      requestAnimationFrame(loop);
+    } catch (e) {
+      console.error("Boot error:", e);
+      UI.start.style.display = "flex";
+      UI.start.classList.add("show");
+      setNickStatus("Ошибка JS. Открой консоль (F12) и пришли ошибку.", "err");
+    }
+  };
+
+  boot();
+})();
+</script>
+
+</body>
+</html>
+
