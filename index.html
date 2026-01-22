@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+  
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=106208328', 'ym');
+
+    ym(106208328, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/106208328" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 <title>МалоРиса — Змейка</title>
@@ -72,7 +87,10 @@ body{
   flex-direction:column;
   align-items:center;
   min-height:100vh;
-  touch-action:none;
+
+  /* IMPORTANT: не блокируем клики по кнопкам на мобильных */
+  touch-action:auto;
+
   overflow:hidden;
 }
 
@@ -147,6 +165,9 @@ body.light .btn-ui{
   width: min(92vw, 440px);
   height: auto;
   aspect-ratio: 1 / 1;
+
+  /* свайпы/управление оставляем только на игре */
+  touch-action: none;
 }
 
 /* Controls */
@@ -164,6 +185,9 @@ body.light .btn-ui{
   box-shadow: var(--shadow-md);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+
+  /* чтобы не было скролла/зумов при тач-управлении */
+  touch-action: none;
 }
 
 .btn{
@@ -265,6 +289,10 @@ body.light .btn{ color: rgba(0,0,0,0.78); }
   box-shadow: 0 14px 34px rgba(255,107,154,0.20);
   border: 1px solid rgba(255,255,255,0.15);
   transition: transform .08s, filter .08s;
+
+  /* для <a> */
+  display:block;
+  text-decoration:none;
 }
 .pixel-btn:active{ transform: translateY(2px); filter: brightness(1.03); }
 
@@ -365,7 +393,11 @@ body.light .nick-input{
 
     <div class="pixel-btn" id="play">ИГРАТЬ</div>
     <div class="pixel-btn secondary" id="invite">ПРИГЛАСИТЬ ДРУГА</div>
-    <div class="pixel-btn secondary" id="site">ПЕРЕЙТИ НА САЙТ</div>
+
+    <!-- FIX: на мобильных надежнее через ссылку -->
+    <a class="pixel-btn secondary" id="site" href="https://malorisa.ru" target="_blank" rel="noopener">
+      ПЕРЕЙТИ НА САЙТ
+    </a>
 
     <div class="small" id="toast"></div>
   </div>
@@ -515,7 +547,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
     else setNickStatus("Введи ник и нажми OK", "");
   };
 
-  // ✅ FIXED Overlay helpers (не исчезает Game Over)
+  // Overlay helpers
   const showOverlay = (el) => {
     if (el._hideTimer) { clearTimeout(el._hideTimer); el._hideTimer = null; }
     el.style.display = "flex";
@@ -625,18 +657,29 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
     }
   };
 
-  // Share
-  const shareGame = async () => {
-    const text = "Попробуй побить мой рекорд в змейке от МалоРиса";
-    const url = location.href;
+  // ====== FIX: Единый URL сайта (берем из кнопки "Перейти на сайт") ======
+  const getSiteUrl = () => {
+    // В приоритете href у <a id="site">
+    const href = UI.site?.getAttribute?.("href");
+    if (href) return href;
 
-    if (navigator.share) {
-      try { await navigator.share({ title: "МалоРиса — Змейка", text, url }); return; } catch {}
+    // запасной вариант (если поменяете разметку)
+    return "https://malorisa.ru";
+  };
+
+  // ====== FIX: Пригласить друга — всегда копирует ссылку + текст ======
+  const inviteText = "Попробуй побить мой рекорд в змейке — её ты найдёшь в баннере на сайте";
+  const copyInvite = async () => {
+    const url = getSiteUrl();
+    const payload = `${inviteText}\n${url}`;
+
+    try {
+      await navigator.clipboard.writeText(payload);
+      showToast("Приглашение скопировано ✅");
+    } catch {
+      // fallback для браузеров без clipboard API
+      window.prompt("Скопируй и отправь другу:", payload);
     }
-
-    const fallback = `${text}\n${url}`;
-    try { await navigator.clipboard.writeText(fallback); showToast("Ссылка скопирована ✅"); }
-    catch { window.prompt("Скопируй и отправь другу:", fallback); }
   };
 
   // Audio
@@ -688,7 +731,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
       f = {
         x: Math.floor(Math.random() * COLS),
         y: Math.floor(Math.random() * ROWS),
-        icon: ["🍣","🍟","🍔","🥡","🍲","🍚","🌮","🥐","🍙","🍤","🍘","🍕"][Math.floor(Math.random() * 4)],
+        icon: FOODS[Math.floor(Math.random() * FOODS.length)],
       };
     } while (State.snake.some(p => p.x === f.x && p.y === f.y));
     State.food = f;
@@ -1094,11 +1137,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
   UI.resume.onpointerdown = () => resumeGame();
   UI.toMenu.onpointerdown = () => goToMenu();
+  UI.menuFromOver.onpointerdown = () => goToMenu();
 
-  UI.invite.onpointerdown = () => shareGame();
-  const SITE_URL = "https://malorisa.ru";
-  UI.site.onpointerdown = () => window.open(SITE_URL, "_blank");
+  // FIX: приглашение — копирование (вместо navigator.share)
+  UI.invite.addEventListener("click", () => copyInvite());
 
+  // Site button: теперь это <a>, JS не нужен.
+  // Если вдруг вернете <div>, можно будет делать window.location.href = getSiteUrl()
+
+  // Save nick
   UI.saveNick.onpointerdown = async () => { await registerNick(); };
   UI.nick.addEventListener("keydown", async (e) => { if (e.key === "Enter") await registerNick(); });
 
@@ -1130,18 +1177,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
     startGame();
   };
 
-  UI.menuFromOver.onpointerdown = () => goToMenu();
-
   // Init UI
   ensureNickRegisteredUI();
   loadLeaderboard();
-
-  // Buttons actions for overlays
-  UI.toMenu.onpointerdown = () => goToMenu();
-  UI.resume.onpointerdown = () => resumeGame();
-
-  // Save nick
-  UI.saveNick.onpointerdown = async () => { await registerNick(); };
 
   // Start loops
   requestAnimationFrame(render);
